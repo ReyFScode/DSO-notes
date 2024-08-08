@@ -5,7 +5,35 @@ Kubernetes, commonly referred to as K8s, is an open-source container orchestrati
 #add info on cgroups drivers / container runtimes [Configuring a cgroup driver | Kubernetes](https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/)  /   [Container Runtimes | Kubernetes](https://kubernetes.io/docs/setup/production-environment/container-runtimes/)
 
 
+
 ----
+
+
+# **Installing Kubernetes (bare-metal, kubeadm) (for use with docker)**
+
+##### Installation instructions:
+This tutorial will focus on Debian based distros. Installing Kubernetes can be surprisingly daunting for newcomers, a lot of instructions online are overly convoluted, here's how to do it (you should probably make an ansible playbook to make installing it on all your Kubernetes nodes easy). If this doesn't work, installation docs are here, use most recent version: [Installing kubeadm | Kubernetes](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/)
+
+**pre-flight configs**
+Start by running this on all nodes to open the necessary ports for K8s communication: `sudo ufw allow 6443/tcp && sudo ufw allow 10250/tcp && sudo ufw allow 10255/tcp && sudo ufw allow 2379/tcp && sudo ufw allow 2380/tcp && sudo ufw allow 53/tcp && sudo ufw allow 53/udp` also ensure that the */etc/apt/keyrings* directory exists, if not make it with this command: `sudo mkdir -p -m 755 /etc/apt/keyrings`. Finally turn swapoff using this command: `sudo swapoff -a`
+
+**Installation procedure**
+1. Ensure docker is installed on all your Kubernetes nodes
+2. Add the Kubernetes repository by running this command on all nodes: 
+```shell
+sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates curl gpg && curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg && echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list && sudo apt-get update
+```
+
+5. Now install kubernetes via apt and then use apt-mark to hold the packages (Ensures the packages cannot be upgraded, removed, or purged.):   `sudo apt install -y kubelet kubeadm kubectl && sudo apt-mark hold kubelet kubeadm kubectl`
+6. Optionally you can set the kubectl service to start immediately at boot with:  `sudo systemctl enable --now kubelet` (you probably want this)
+
+you can turn swap back on with:   `sudo swapon -a` , you can remove the hold from the packages with:   `sudo apt-mark unhold kubelet kubeadm kubectl`
+
+**!! Common error - *container runtime is not running*:**  sometimes you may get a "container runtime is not running" error when starting/joing a kubernetes deployment, to remedy this you can run this command:  `rm /etc/containerd/config.toml && systemctl restart containerd`   After running the command retry your init command 
+
+
+---
+
 
 # **Key Kubernetes terms**
 
@@ -49,7 +77,9 @@ Kubernetes, commonly referred to as K8s, is an open-source container orchestrati
 18. **CNI**: Container Networking Interface (CNI) plugins are essential components in Kubernetes clusters responsible for facilitating network communication between pods, enabling seamless connectivity both within and across nodes. They assign IP addresses to pods, enforce network policies, and manage traffic routing within the cluster. Each CNI plugin integrates with Kubernetes to provide networking capabilities tailored to specific requirements, such as scalability, performance, and security. Popular CNI plugins like Calico, Flannel, and Cilium offer diverse features and deployment options, allowing users to choose the most suitable solution for their cluster environment. By installing and configuring a CNI plugin, Kubernetes administrators ensure that pods can communicate effectively, enabling applications to function correctly within the cluster.
 
 
+
 ----
+
 
 # **Kubernetes Architecture**
 
@@ -77,79 +107,14 @@ Kubernetes architecture consists of several components working together to manag
 In summary, kubeadm is used for cluster bootstrap and initialization, kubectl is used for cluster management and resource manipulation, and kubelet is responsible for managing containers on individual nodes and ensuring their health and availability.
 
 
-----
-
-# **K8s CNI plugins**
-
-Kubernetes itself doesn't provide built-in networking capabilities. Instead, it relies on pluggable CNI (Container Network Interface) plugins to handle networking tasks such as pod-to-pod communication, IP address management, and network policy enforcement. CNI plugins are essential components that facilitate network communication between containerized workloads in a Kubernetes cluster. They are responsible for configuring network interfaces, managing IP addresses, and handling network policies within the cluster.
-
-Some common CNIs:
-
-1. **Calico**: Calico is a popular choice for Kubernetes networking. It provides network policy enforcement, IP address management, and secure communication between pods across nodes. Calico is often chosen for its scalability and support for large-scale deployments.
-
-2. **Flannel**: Flannel is another widely used CNI plugin that offers a simple and easy-to-deploy networking solution for Kubernetes. It creates an overlay network that allows pods to communicate with each other regardless of the underlying network infrastructure. Flannel is known for its simplicity and reliability.
-
-3. **Cilium**: Cilium is a modern CNI plugin that focuses on providing secure networking and observability for Kubernetes clusters. It utilizes eBPF (extended Berkeley Packet Filter) technology to implement network policies and enforce security rules at the kernel level. Cilium offers high performance and advanced features such as transparent encryption and HTTP/API-aware security.
-
-4. **Weave Net**: Weave Net is a CNI plugin that offers a simple and flexible networking solution for Kubernetes clusters. It creates a virtual network that spans across nodes, allowing pods to communicate securely with each other. Weave Net also provides features like network segmentation, encryption, and automatic IP address management.
-
-5. **Kube-router**: Kube-router is a CNI plugin that integrates networking and routing functionalities directly into Kubernetes. It offers dynamic routing, network policy enforcement, and service discovery capabilities. Kube-router is designed to be lightweight and efficient, making it suitable for both small and large Kubernetes deployments.
-
-**Best practices and tips for Kubernetes CNI plugins:**
-
-- **Evaluate based on use case**: Different CNI plugins have unique features and performance characteristics. Choose the one that best fits your requirements, considering factors such as scalability, security, and ease of management.
-
-- **Ensure compatibility**: Make sure that the chosen CNI plugin is compatible with your Kubernetes version and other components in your cluster, such as the container runtime and operating system.
-
-- **Implement network policies**: Utilize Kubernetes Network Policies to enforce security rules and restrict communication between pods based on labels, namespaces, and other criteria. This helps improve the overall security posture of your cluster.
-
 
 ----
 
-# **K8s deployment types:**
-
-...in progress
-
-----
-
-# **Installing Kubernetes (BASIC) (for use with docker)**
-
-##### Installation instructions:
-This tutorial will focus on Debian based distros. Installing Kubernetes can be surprisingly daunting, a lot of instructions online are overly convoluted, here's how to do it (you should probably make an ansible playbook to make installing it on all your Kubernetes nodes easy). If this doesn't work, installation docs are here, use most recent version: [Installing kubeadm | Kubernetes](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/)
-
-**pre-flight configs**
-Start by running this on all nodes to open the necessary ports for K8s communication: `sudo ufw allow 6443/tcp && sudo ufw allow 10250/tcp && sudo ufw allow 10255/tcp && sudo ufw allow 2379/tcp && sudo ufw allow 2380/tcp && sudo ufw allow 53/tcp && sudo ufw allow 53/udp` also ensure that the */etc/apt/keyrings* directory exists, if not make it with this command: `sudo mkdir -p -m 755 /etc/apt/keyrings`. Finally turn swapoff using this command: `sudo swapoff -a`
-
-**Installation procedure**
-1. Ensure docker is installed on all your Kubernetes nodes
-2. Add the Kubernetes repository by running this command on all nodes: 
-```shell
-sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates curl gpg && curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg && echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list && sudo apt-get update
-```
-
-5. Now install kubernetes via apt and then use apt-mark to hold the packages (Ensures the packages cannot be upgraded, removed, or purged.):   `sudo apt install -y kubelet kubeadm kubectl && sudo apt-mark hold kubelet kubeadm kubectl`
-6. Optionally you can set the kubectl service to start immediately at boot with:  `sudo systemctl enable --now kubelet` (you probably want this)
-
-you can turn swap back on with:   `sudo swapon -a` , you can remove the hold from the packages with:   `sudo apt-mark unhold kubelet kubeadm kubectl`
-
-**!! Common error - *container runtime is not running*:**  sometimes you may get a "container runtime is not running" error when starting/joing a kubernetes deployment, to remedy this you can run this command:  `rm /etc/containerd/config.toml && systemctl restart containerd`   After running the command retry your init command 
-
-
-----
-
-# **Installing Kubernetes (ADVANCED)
-
-##### Installation instructions:
-This tutorial will focus on Debian based distros. 
-
-
-
-----
 
 #  **Kubernetes essential commands**
 
 **Creation/teardown commands:**
-1. **Initialize K8s cluster**
+1. **Initialize K8s cluster via kubeadm**
 ```bash
 kubeadm init
 ```
@@ -174,7 +139,7 @@ kubectl delete node [node-name]
 
 ```
 
-5. **De-initialize a node that kubeadm init was run on**
+5. **De-initialize control plane ( a node that kubeadm init was run on )**
 ```bash
 kubeadm reset # should only be run after all nodes are deleted to ensure a clean cleanup
 ```
@@ -213,29 +178,140 @@ kubectl describe pod <pod_name>
 kubectl get deployments
 ```
 
-6. **Enter a kubernetes pod**
+6. **Enter a Kubernetes pod**
 ```bash
 kubectl exec -it [pod_name] -- bash
 # -- isnt needed as of this document but soon will be required
 ```
 
-8. **Create or Apply a Configuration**
+7. **Create or Apply a Configuration**
 ```bash
 kubectl apply -f <configuration.yaml> # can be deployments, CNI manifests, etc. kubectl apply is a very versatile command
 ```
 
-8. **Scale a Deployment**
+8. Generate a deployment YAML / create a single container deployment
+```bash
+#deployment.ymls can be very complex and hard to remember how to write, k8s can autogenerate the .ymls with the command, we can then modify this file to customize the deployment
+kubectl create deployment [name] --image [something:something] -o yaml --dry-run=client> [somename].yml #--dry-run=client doesnt activate the deployment, just generates the yaml, if we omit this flag then the deployment will be created and go live in addition to the YAML being generated
+
+#if we omit the `-o --dry-run... >` section we can generate a deployment with specified images (can pass multiple image flags)
+kubectl create deployment [name] --image [something:something]
+
+```
+
+9. Generate a single pod / create a pod YAML
+```bash
+#Pods, like deployments, can be defined via a yaml file as well, to generate a pod yaml we use kubectl run pass in pod specifications via flags like --image and then specify -o yaml + --dry-run=client
+kubectl run [container/pod name] --image [something:something] -o yaml --dry-run=client > [somename].yml
+
+#if we omit the `-o --dry-run... >` section we can run a single pod (Container), to connect we can add -it, similar to docker run
+kubectl run -it [container/pod name] --image [something:something]
+
+```
+
+10. **Scale a Deployment**
 ```bash
 kubectl scale deployment <deployment_name> --replicas=<replica_count>
 ```
 
 
 
-****
+----
 
-# **Tutorial: Performing a basic Kubernetes deployment**
+# **Understanding Kubernetes Manifests (YAML) **
 
-In kubernetes the state of a deployment (the services, configurations, etc.) are defined using YAML files called deployment manifests. Before we create this file we must initialize a cluster. in this example we will use two machines (one master & one slave) that both have kubeadm, kubelet, and kubectl installed (see install guide above). Here are the steps to initialize a cluster & create a simple deployment. To follow along you should use two hosts (one master one worker, preferably Linux). We will be utilizing the calico CNI for cluster networking.
+In Kubernetes the state of resources (the services, CNIs, pods, deployments, configurations, etc.) are defined using YAML files called manifests. We can create most of these resource objects imperatively (manually, via CLI), but using a declarative (representation of state) approach allows   for reproducibility, ease of modification/collaboration, and for versioning purposes. 
+
+The two types of manifests that you will interact with most frequently are deployment & pod manifests. these manifests can be complex and if you're like me and your brain is already full of dockerfile/compose, ansible, terraform, jenkins, etc. syntax you may have trouble remembering how to create these files off the cuff.....but dont worry! Kubernetes provides the ability to generate formatted YAML files for these resources that you can then modify to your specifications and then apply. We can do this by specifying a create command `create` for deployments & `run` for pods, and appending `-o yaml --dry-run=client > something.yaml` to the command to specify that we only want to generate the respective yaml and that we want it piped to a file in the pwd.
+
+Lets start by generating a pod & deployment manifest and then we will configure the files manually to meet our specifications.
+
+- (1) **run this command to generate a pod manifest:** `kubectl run Mypod --image ubuntu:latest -o yaml --dry-run=client > mypod.yaml`
+*It will generate:*
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: Mypod
+  name: Mypod
+spec:
+  containers:
+  - image: ubuntu:latest
+    name: Mypod
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+- (2) **now run this command to generate a deployment manifest:** `kubectl create deployment MyDeployment --image ubuntu:latest --image mysql:latest -o yaml --dry-run=client > mydep.yaml`
+*It will generate:*
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: MyDeployment
+  name: MyDeployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: MyDeployment
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: MyDeployment
+    spec:
+      containers:
+      - image: ubuntu:latest
+        name: ubuntu
+        resources: {}
+      - image: mysql:latest
+        name: mysql
+        resources: {}
+status: {}
+```
+
+
+Lets examine each manifest to learn about them / some additional syntax you can use to customize them.
+
+lets look at the pod manifest first:
+
+now lets look at the deployment manifest:
+
+
+.... add stdin: true / tty:true / -it / exec 
+
+---
+
+# **Understanding Kubernetes deployment structure / best practices **
+Yes, it is common practice to deploy individual services as separate Kubernetes (K8s) deployments instead of bundling them into one. This approach aligns with the principles of microservices architecture and provides several benefits:
+
+1. **Isolation and Resilience**: Each service runs independently, which improves fault isolation. If one service fails, it does not affect the others.
+    
+2. **Scalability**: Services can be scaled independently based on their own demand, optimizing resource usage.
+    
+3. **Flexibility**: Each service can be deployed, updated, and managed separately, allowing for more agile development and deployment cycles.
+    
+4. **Security**: Isolating services can enhance security by limiting the attack surface and applying security policies at a more granular level.
+    
+5. **Resource Management**: Resource requests and limits can be set per service, providing better control over resource allocation.
+    
+
+In Kubernetes, each service typically has its own Deployment, which manages a set of replicated Pods. This setup also allows the use of other Kubernetes features like ConfigMaps, Secrets, and Services to manage configuration and communication between services.
+
+----
+
+
+# **Tutorial: Performing a basic Kubernetes deployment with kubeadm**
+
+Here we will go through initializing a cluster. in this example we will use two machines (one master & one slave) that both have kubeadm, kubelet, and kubectl installed (see install guide above). Here are the steps to initialize a cluster & create a simple deployment. To follow along you should use two hosts (one master one worker, preferably Linux). We will be utilizing the calico CNI for cluster networking.
 
 
 1) On the master node we initialize the control plane using `kubeadm init` , we need to specify a pod network CIDR for the cluster to use (more on that in the networking section):  
@@ -288,9 +364,12 @@ spec:
       containers:
         - name: ubuntu_container
           image: ubuntu:latest
+          stdin: true
+          tty: true
           ports:
             - containerPort: 80
-          args: ["/bin/bash"]
+          command: 
+            - /bin/bash
 ```
 Now navigate to the directory that you made it in and run:   `kubectl apply -f deployment.yml`
 Your deployment should now be live! check on it with these commands: `kubectl get deployments` & `kubectl get pods`
@@ -308,8 +387,45 @@ sudo kubeadm reset; rm -r $HOME/.kube # resets kubeadm and deletes .kube directo
 Now your cluster should be torn down! all done!
 
 
+---
+
+
+# **Installing Kubernetes (ADVANCED)
+
+##### Installation instructions:
+This tutorial will focus on Debian based distros. 
+
+
 
 ----
+# **K8s CNI plugins**
+
+Kubernetes itself doesn't provide built-in networking capabilities. Instead, it relies on pluggable CNI (Container Network Interface) plugins to handle networking tasks such as pod-to-pod communication, IP address management, and network policy enforcement. CNI plugins are essential components that facilitate network communication between containerized workloads in a Kubernetes cluster. They are responsible for configuring network interfaces, managing IP addresses, and handling network policies within the cluster.
+
+Some common CNIs:
+
+1. **Calico**: Calico is a popular choice for Kubernetes networking. It provides network policy enforcement, IP address management, and secure communication between pods across nodes. Calico is often chosen for its scalability and support for large-scale deployments.
+
+2. **Flannel**: Flannel is another widely used CNI plugin that offers a simple and easy-to-deploy networking solution for Kubernetes. It creates an overlay network that allows pods to communicate with each other regardless of the underlying network infrastructure. Flannel is known for its simplicity and reliability.
+
+3. **Cilium**: Cilium is a modern CNI plugin that focuses on providing secure networking and observability for Kubernetes clusters. It utilizes eBPF (extended Berkeley Packet Filter) technology to implement network policies and enforce security rules at the kernel level. Cilium offers high performance and advanced features such as transparent encryption and HTTP/API-aware security.
+
+4. **Weave Net**: Weave Net is a CNI plugin that offers a simple and flexible networking solution for Kubernetes clusters. It creates a virtual network that spans across nodes, allowing pods to communicate securely with each other. Weave Net also provides features like network segmentation, encryption, and automatic IP address management.
+
+5. **Kube-router**: Kube-router is a CNI plugin that integrates networking and routing functionalities directly into Kubernetes. It offers dynamic routing, network policy enforcement, and service discovery capabilities. Kube-router is designed to be lightweight and efficient, making it suitable for both small and large Kubernetes deployments.
+
+**Best practices and tips for Kubernetes CNI plugins:**
+
+- **Evaluate based on use case**: Different CNI plugins have unique features and performance characteristics. Choose the one that best fits your requirements, considering factors such as scalability, security, and ease of management.
+
+- **Ensure compatibility**: Make sure that the chosen CNI plugin is compatible with your Kubernetes version and other components in your cluster, such as the container runtime and operating system.
+
+- **Implement network policies**: Utilize Kubernetes Network Policies to enforce security rules and restrict communication between pods based on labels, namespaces, and other criteria. This helps improve the overall security posture of your cluster.
+
+
+
+----
+
 
 # **Kubernetes Deployments/Services in depth**
 

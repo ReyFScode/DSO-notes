@@ -357,7 +357,7 @@ However, it's crucial to note that exposing a container or any resource with a D
 
 
 # **Dockerfile basics**
-Dockerfiles act as essential tools for building custom Docker images, providing a streamlined process for constructing tailored environments tailored to specific applications or services.
+Dockerfiles act as essential tools for building custom Docker IMAGES, providing a streamlined process for constructing tailored environments tailored to specific applications or services.
 For example, imagine a scenario where an application requires a Linux environment with precise selection of packages installed inside. Instead of starting from a base Linux image and manually configuring it through docker exec/docker cp, Dockerfiles allow us to begin with a base Linux image aligned with the desired distribution. Through the Dockerfile, we can then specify the installation of necessary packages and incorporate the proprietary application directly into the image. The resulting image provides a portable, pre-configured environment perfectly suited for executing the application. This eliminates the need for extensive manual configuration steps. This approach streamlines the process, making it easier to replicate, migrate, and deploy applications seamlessly.
 
 ##### Basic Dockerfile Commands
@@ -538,7 +538,7 @@ services:
 ```
 
 ###### 2- docker compose container keeps shutting down
-The first thing you should try is add `stdin_open: true` to the compose service that's shutting down, this is equivalent to the -i flag in docker run and should keep it open. If that doesn't work you can do a hacky little trick to keep containers from shutting down when created via docker compose, sometimes the *entrypoint /bin/bash* keep-alive trick doesn't work for docker-compose, but if you add:
+The first thing you should try is add `stdin_open: true` & `tty: true` to the compose service that's shutting down, this is equivalent to the -i flag in docker run and should keep it open. If that doesn't work you can do a hacky little trick to keep containers from shutting down when created via docker compose, sometimes the *entrypoint /bin/bash* keep-alive trick doesn't work for docker-compose, but if you add:
 `entrypoint: /bin/tail -F anything` (yes, actually write anything) 
 to the service section the container should stay open for exec sessions (will only work for Linux based images).
 
