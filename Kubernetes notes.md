@@ -1,4 +1,5 @@
 # **Kubernetes (K8s) Notes**
+study set: [K8s Flashcards | Quizlet](https://quizlet.com/931874317/k8s-flash-cards/)
 Kubernetes, commonly referred to as K8s, is an open-source container orchestration platform designed to automate the deployment, scaling, and management of containerized applications. Kubernetes enables organizations to manage containerized workloads across a cluster of machines, providing flexibility, scalability, and resilience.
 
 #goThrough ayush kumar on linkedin to distill hsi learning materials
@@ -189,7 +190,7 @@ kubectl exec -it [pod_name] -- bash
 kubectl apply -f <configuration.yaml> # can be deployments, CNI manifests, etc. kubectl apply is a very versatile command
 ```
 
-8. Generate a deployment YAML / create a single container deployment
+8. **Generate a deployment YAML / create a single container deployment**
 ```bash
 #deployment.ymls can be very complex and hard to remember how to write, k8s can autogenerate the .ymls with the command, we can then modify this file to customize the deployment
 kubectl create deployment [name] --image [something:something] -o yaml --dry-run=client> [somename].yml #--dry-run=client doesnt activate the deployment, just generates the yaml, if we omit this flag then the deployment will be created and go live in addition to the YAML being generated
@@ -199,7 +200,7 @@ kubectl create deployment [name] --image [something:something]
 
 ```
 
-9. Generate a single pod / create a pod YAML
+9. **Generate a single pod / create a pod YAML**
 ```bash
 #Pods, like deployments, can be defined via a yaml file as well, to generate a pod yaml we use kubectl run pass in pod specifications via flags like --image and then specify -o yaml + --dry-run=client
 kubectl run [container/pod name] --image [something:something] -o yaml --dry-run=client > [somename].yml
@@ -214,20 +215,24 @@ kubectl run -it [container/pod name] --image [something:something]
 kubectl scale deployment <deployment_name> --replicas=<replica_count>
 ```
 
+11. **Get the API Version for all k8s objects**
+```bash
+kubectl api-resources
+```
 
 
 ----
 
-# **Understanding Kubernetes Manifests (YAML) **
+# **Understanding Kubernetes Manifests (part 1) (pods/deployments) **
 
 In Kubernetes the state of resources (the services, CNIs, pods, deployments, configurations, etc.) are defined using YAML files called manifests. We can create most of these resource objects imperatively (manually, via CLI), but using a declarative (representation of state) approach allows   for reproducibility, ease of modification/collaboration, and for versioning purposes. 
 
-The two types of manifests that you will interact with most frequently are deployment & pod manifests. these manifests can be complex and if you're like me and your brain is already full of dockerfile/compose, ansible, terraform, jenkins, etc. syntax you may have trouble remembering how to create these files off the cuff.....but dont worry! Kubernetes provides the ability to generate formatted YAML files for these resources that you can then modify to your specifications and then apply. We can do this by specifying a create command `create` for deployments & `run` for pods, and appending `-o yaml --dry-run=client > something.yaml` to the command to specify that we only want to generate the respective yaml and that we want it piped to a file in the pwd.
+The three types of manifests that you will interact with most frequently are deployment, pod, and service manifests. these manifests can be complex and if you're like me and your brain is already full of dockerfile/compose, ansible, terraform, jenkins, etc. syntax you may have trouble remembering how to create these files off the cuff.....but dont worry! Kubernetes provides the ability to generate formatted YAML files for these resources that you can then modify to your specifications and then apply. We can do this by specifying a create command `create` for deployments & `run` for pods, and appending `-o yaml --dry-run=client > something.yaml` to the command to specify that we only want to generate the respective yaml and that we want it piped to a file in the pwd.
 
-Lets start by generating a pod & deployment manifest and then we will configure the files manually to meet our specifications.
+**Lets start by generating a pod & deployment manifest and then we will learn how to configure the files manually to meet our specifications. Services are another beast and we will hit these in the next section.**
 
 - (1) **run this command to generate a pod manifest:** `kubectl run Mypod --image ubuntu:latest -o yaml --dry-run=client > mypod.yaml`
-*It will generate:*
+***It will generate mypod.yaml:***
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -247,7 +252,7 @@ status: {}
 ```
 
 - (2) **now run this command to generate a deployment manifest:** `kubectl create deployment MyDeployment --image ubuntu:latest --image mysql:latest -o yaml --dry-run=client > mydep.yaml`
-*It will generate:*
+***It will generate mydep.yaml:***
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -279,14 +284,130 @@ status: {}
 ```
 
 
-Lets examine each manifest to learn about them / some additional syntax you can use to customize them.
 
-lets look at the pod manifest first:
+**^Lets examine the essential sections for manifests and then go over the above generated manifests to learn about them / some additional syntax you can use to customize them.**
+#### Top level section (object definition)
+There are three required top level lines for manifests:
+- **line 1** - `apiVersion` : Manifests always have a top level section that starts with this. It indicates the API version that  the object belongs to, this can be different for each object, to determine what API owns what object you can view it with `kubectl api-resources`
 
-now lets look at the deployment manifest:
+-  **line 2** - `kind` : This second line will tell k8s what the target object for the manifest is (e.g. pod, deployment)
+
+ - **line 3** - `metadata:` : This is a non-optional section that is configured to assign information like names, labels, namespaces, timestamps, etc. to the object, you must always include a name: 
+```yaml
+metadata:
+  name: something  # must always include this at a minimum
+```
+to define the name of the object, all other configurations in this section (for deployment/pod manifests, there are other required values for different manifests) are optional but can be quite helpful.
+
+#### lower level section(s) (specification)
+The `spec` section defines what Kubernetes should build and how it should be built
+
+***lets look at the pod manifest first:***
+```yaml
+apiVersion: v1
+kind: Pod
+...
+  
+spec:    # <-- We are targeting this section
+  containers:
+  - image: ubuntu:latest
+    name: conatainer1
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+Here it defines that the pod should include a single container that uses the ubuntu:latest image and has the name 'container1', the containers section is the only required information for this section. 
+For further customization It also specifies:
+ - an empty resources section (this section can be used to define resource requests and limits for the container), 
+ - a dns/restart policy for the pod
+ - and the status section set to {} which allows Kubernetes the ability to populate this field with runtime information about the Pod's state.
+
+
+***Now lets look at the deployment manifest:***
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+...
+
+spec:    # <-- We are targeting this section
+  replicas: 1
+  selector:
+    matchLabels:
+      app: MyDeployment
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: MyDeployment
+    spec:
+      containers:
+      - image: ubuntu:latest
+        name: ubuntu
+        resources: {}
+      - image: mysql:latest
+        name: mysql
+        resources: {}
+status: {}
+```
+
+The first thing you'll notice is that there are two specification (`spec`) sections, and a template section. one spec section is for the deployment configuration and one is for the pod configuration.
+
+> In the first spec section, the one that defines the deployment configuration we can see:
+- `replicas: 1` : this determines how many replicas of the pod to run, each deployment can only run one pod but we can specify how many instances of this pod to run on the cluster with this config.
+- `selector:...` : this section defines how the deployment select pods to manage, it does this by using labels that can match pods to the deployment... #fleshout
+- `strategy` :  defines the pod update strategy, {} tells k8s to use the default strategy
+
+> The template section defines the pod templates, you need to specify the labels you want matched here, This is a non-optional section.
+
+> In the last spec section we can see a similar setup to the pod manifest spec section we went through above, here is where we set up the pod specifications so just like above you need container declarations and configurations.
+
+
+
+#### Optional specifications:
+
+**Pods (applies to pod spec section in both pod & deployment manifests)**
+```yaml
+...
+kind: pod or deployment
+...
+    spec:
+      containers:
+      - image: ubuntu:latest
+        name: ubuntu
+        
+        stdin: true  
+        tty: true     #stdin + tty can be used like the -dit flag in docker to keep the container in the pod running detached in the background able to be entered into a terminal
+        
+        
+```
+
+
+**deployments**
+
+
 
 
 .... add stdin: true / tty:true / -it / exec 
+
+
+----
+
+# **Understanding Kubernetes Manifests (part 2) (services) **
+
+
+
+
+
+
+
+
+
+
+---
+
+# **contexts/namespaces
 
 ---
 
