@@ -219,7 +219,7 @@ kubectl edit [object: deployment, pod, etc.] [name]
 
 13. **Scale a deployment, replica set, replication controller, or stateful set**
 ```bash
-kubectl scale [object: deployment, stateful-set, etc.] <object_name> --replicas=<replica_count>
+kubectl scale [object: deployment, stateful-set, etc.] [object_name] --replicas=<replica_count>
 
 can also be set up as : kubectl scale --flags object/name (e.g deployment/nameofDeployment)
 --------------------------------------------------------------------

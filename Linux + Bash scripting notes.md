@@ -55,6 +55,8 @@ $()
 
 
 #### **-----Intermediate/Advanced Concepts:------**
+#add-syscalls
+
 ##### **Interprocess communication (IPC)** (flesh out a lil more, for clarity, study a little more)
 There are a handful of ways that Linux facilitates IPC, we will go over two primary ways here. For an awesome guide on all things IPC use this link: [https://tldp.org/LDP/tlk/ipc/ipc.html](https://tldp.org/LDP/tlk/ipc/ipc.html#:~:text=Processes%20communicate%20with%20each%20other%20and%20with%20the,T%20M%20release%20in%20which%20they%20first%20appeared.)
  1. **Pipes:**

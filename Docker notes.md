@@ -403,13 +403,12 @@ docker build . -f [dockerfile-name] -t [desired_image_name:desired_image_tag]
 ```
 
 **Quick clarification on `CMD` vs `ENTRYPOINT`:**
-This can be confusing so here's a really simplified answer to help you, `ENTRYPOINT` is used to define the primary executable of the container, with `CMD` is used to provide default arguments or additional commands to the entrypoint. For many use-cases `ENTRYPOINT` is not necessary, you can simply use `CMD`.
-Example (try this out!):
+This can be confusing so here's a really simplified answer to help you, `ENTRYPOINT` is used to define the primary executable of the container, with every component of the command spaced and in quotes ,e.g. *"command", "Command2"* with `CMD` is used to provide default arguments or additional commands to the entrypoint. If you need to run a command that doesnt change at instantiation entrypoint is going to be what you need to use, you dont have to use CMD unless you want flags that are overridable at run. (try this out!):
 ``` Dockerfile
 # Use a base image 
 FROM ubuntu:latest 
 
-# Set the default executable using ENTRYPOINT, each spaced term needs to be in "" seperated by a , .
+# Set the default executable using ENTRYPOINT, each spaced term needs to be in "" seperated by a , e.g. ["/bin/bash", "-c"] to call a specific bash command
 ENTRYPOINT ["/bin/echo", "Hello"] 
 
 # Set default arguments using CMD 
@@ -417,7 +416,22 @@ CMD ["World!"]
 
 # Name this Dockerfile and build it using docker build . -t test:img, now run a container with it using docker run --name test test:img
 ```
-When you build this image and create a container from it, it will output "Hello World!" when started. But if you removed `CMD` and used only `ENTRYPOINT ["/bin/echo", "Hello World!"] ` you would get the same output. Conversely if you used `CMD ["/bin/echo", "Hello World"]` you would get the same result (CMD is the same as specifying a command after docker run e.g *docker run test:test "/bin/echo hi"*). **Its best practice to use entrypoint and CMD together though.**
+This command literally passes the command: */bin/echo Hello 'World'* command at runtime, notice that the part in CMD has added single quotes around it, this is what we mean by supplemental arguments. It is overridable because if you do *docker run --name test test:img bob* it will output "Hello bob" instead of "Hello World!"
+
+
+View it like this: if we needed to run a command like mysqld we would need to first invoke the bash executable and pass a command flag through entrypoint, the actual mysqld would be in quotes after that: */bin/bash -c "mysqld"*
+the */bin/bash -c i*s the entrypoint, the additional command components e.g mysqld is the CMD. If we dont need this command to change we could just lump it all into entrypoint.
+
+
+NOTE: if entrypoint is passed a command with spaces it will treat it like cmd and add single quotes:
+```
+FROM ubuntu:latest
+ENTRYPOINT ["/bin/bash", "-c", "hostname -i ; ls /proc ; /bin/bash"] 
+
+```
+In this example the command passed at instantiation is: */bin/bash -c 'hostname -i ; ls /proc ; /bin/bash'* this means that if we run the container with -it we will get the container IP, the contents of the proc directory, and since we end with /bin/bash a terminal we can enter into (also allows for detached mode). since there are spaces in the entry after -c it is passed in single quotes.
+
+#clean_this_up_make_explanation_better^
 
 ##### Dockerfile Multistage builds
 Multi-stage builds in Docker allow you to create smaller, more efficient Docker images by using multiple build stages within a single Dockerfile. Each stage can have its own set of instructions and dependencies, and artifacts from one stage can be selectively copied to subsequent stages. This is particularly useful for compiling source code, building binaries, and ensuring that only necessary files are included in the final image.
