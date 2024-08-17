@@ -31,6 +31,44 @@ Linux:
 ```
 
 
+# List modification
+
+### splitting/appending
+you can append items to a list with the append function:
+```python
+somelist = []
+for x in something:
+	somelist.append(x)
+```
+
+you can split something into a list using split:
+```python
+# split based on spaces
+string1 = "something something2 some3"
+newlist = string1.split(" ")
+#output// >>> print(newlist) >>> ['something', 'something2', 'some3']
+
+
+# split based on commas
+string1 = "something,something2,some3"
+newlist = string1.split(",")
+#output// >>> print(newlist) >>> ['something', 'something2', 'some3']
+```
+
+### removing empty elements
+you can remove empty elements from a list with a filter:
+`list2 = list1(filter(None, list1))`
+
+
+### removing certain identical elements
+you can remove certain identical elements from a list with a filter:
+`list2 = list1(filter(None, list1))`
+
+
+
+
+
+
 # Variables
 
 Classic variables = 
