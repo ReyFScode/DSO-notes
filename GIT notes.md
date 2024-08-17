@@ -117,3 +117,15 @@ Git LFS is an extension for handling large files with Git. To use Git LFS:
 3. Commit and push changes as usual. Large files will be stored in Git LFS.
 
 ... in progress
+
+
+
+---
+
+ #  **Pulling / Merging**
+
+```
+git pull origin main 
+```
+
+^Fetches upstream changes and merges them into your local codebase
