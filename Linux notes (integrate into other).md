@@ -7,7 +7,7 @@ to list all aliases : `alias -p`
 add an alias: `alias alias_name="command_to_run"`
 remove an alias `unalias [name]`
 
-
+ADD info about chaining commands with ';' (for chains that do not require all the previous command to complete successfully ) and with '&&' (for chaining commands that require the previous command to execute successfully)
 
 
 SED
