@@ -29,3 +29,6 @@ sed v TR
 tricks:
 
  combining multi-command output in the same line, use **echo -n** e.g. `echo -n "$(pwd)" ; echo "/somefile"` to display the pwd + custom filename on the same line.
+
+
+add setfacl for adding access to a directory .../ file?

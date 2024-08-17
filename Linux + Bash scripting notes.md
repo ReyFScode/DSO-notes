@@ -128,18 +128,18 @@ Installed packages can be found in `/var/cache/apt/archives` APT packages come i
 
 
 #### Users and Permissions:
-**Linux is a multi-user operating system with robust permission control.**
-   - Each user has a unique username and user ID (UID).
-   - Use the `adduser [username]` command to add new users.
-   - use the `userdel [username] ; rm -r /home/[username] ` command to delete a user.
-   - Use the `groupadd [groupName]` command to add a new group.
+**Linux is a multi-user operating system with robust permission control. Each user has a unique username and user ID (UID).**
+   - Use the `adduser [username]` command to add new users. for a more simplistic command (not as easy) you can opt to use `useradd`.
+   - use the `deluser [username] ; rm -r /home/[username] ` command to delete a user.
+   - Use the `addgroup [groupName]` command to add a new group.
+   - Use the `delgroup / [groupName]` command to remove a  group.
    - Use the `usermod -aG [groupName] [username]` to add a user to a group & `gpasswd --delete [username] [groupName]` to remove a user from a group
    - Use `groupdel [groupName]` to delete a group.
    - Use the `passwd` command to set or change user passwords.
    - To get all users use: `getent passwd`  (to get all core desktop users you can list the contents of the /home directory), to get all groups use: `getent group`
 
    - **File permissions are managed using the `chmod`, `chown`, or `chgrp` command.** 
-		   - **chmod (Change Mode):**  example -`chmod u+rwx file.txt` grants read, write, and execute permissions to the file owner, you can also use numerical permission denotation e.g. `chmod +777 file.txt` will apply +rwx permissions for all users to file.txt.
+		   - **chmod (Change Mode):**  example -`chmod u+rwx file.txt` grants read, write, and execute permissions to the file owner, you can also use numerical permission denotation e.g. `chmod +777 file.txt` will apply +rwx permissions for all users to file.txt (777 is a bad security practice).
 		   - **chown (Change Ownership)**: This command is used to change the owner and optionally the group of a file or directory. For example, `chown john:users file.txt` would change the ownership of `file.txt` to the user `john` and the group `users`.
 		   - **chgrp (Change Group)**: This command adjusts the group ownership of a file or directory. For example, `chgrp staff file.txt` would change the group ownership of `file.txt` to the group `staff`.
 
@@ -154,7 +154,9 @@ Installed packages can be found in `/var/cache/apt/archives` APT packages come i
 
 #### Networking:
 **Basics:**
-- Use `ifconfig` (if net-tools is installed, if not you can get it using `apt-get install net-tools`) or the `ip a` / `ip route` (no apt install required) command to display network interface/routing information.
+- Commands for getting IP addresses (`ifconfig`, `ip a`, and `hostname -i` )
+  Use `ifconfig` (if net-tools is installed, if not you can get it using `apt-get install net-tools`), or the `ip a`  (normally built-in, no apt install required) command to display verbose network interface/routing information. If neither `ifconfig` or `ip a` are working you can try `hostname -i` to get the IP address of your device (this command is not verbose and will just give you the primary IP address).
+  
 -  Troubleshoot network connectivity using tools like `ping`, `traceroute`, `ss`, and `netstat`:
 	- **Ping**: Ping checks if a host is reachable by sending ICMP echo requests and measuring the time taken for a response.
 	- **Traceroute**: Traceroute traces the route packets take from the source to the destination, showing each hop and the time it takes to reach each node.
