@@ -225,12 +225,14 @@ kubectl edit [object: deployment, pod, etc.] [name]
 kubectl scale [object: deployment, stateful-set, etc.] [object_name] --replicas=<replica_count>
 
 can also be set up as : kubectl scale --flags object/name (e.g deployment/nameofDeployment)
+OR
+kubectl scale object/name --flags object/name
 --------------------------------------------------------------------
 
 Scale also allows users to specify one or more preconditions for the scale action.
 If --current-replicas or --resource-version is specified, it is validated before the scale is attempted, and it is guaranteed that the precondition holds true when the scale is sent to the server.
 
-Examples:
+Examples (taken from kubectl scale --help):
   # Scale a replica set named 'foo' to 3
   kubectl scale --replicas=3 rs/foo
 
