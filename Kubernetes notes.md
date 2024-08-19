@@ -93,13 +93,14 @@ Kubernetes architecture consists of several components working together to manag
     - **etcd**: This distributed key-value store in Kubernetes serves as the cluster's backing store for all cluster data. In Docker Swarm, a similar function is performed by the built-in Raft consensus algorithm, which manages the cluster state and ensures consistency across manager nodes.
     - **kube-scheduler**: The Kubernetes scheduler is responsible for selecting an appropriate node for newly created pods based on resource requirements, affinity/anti-affinity rules, and other constraints. In Docker Swarm, container placement decisions are made by the built-in scheduler, which ensures optimal resource utilization across the cluster.
     - **kube-controller-manager**: This component in Kubernetes runs controller processes responsible for maintaining the desired state of the cluster. Similar functionality in Docker Swarm is provided by the built-in controller processes, such as the node controller and replication controller, which ensure that the cluster maintains the desired number of nodes and replicas of services.
-        
+    
 **Node Components**:
     - **kube-proxy**: This component in Kubernetes maintains network rules on nodes to enable communication between pods and external traffic. It implements the Kubernetes service abstraction by managing network routing and load balancing. In Docker Swarm, similar functionality is provided by the built-in routing mesh, which ensures that incoming traffic is routed to the appropriate containers across the cluster.
+    - **Kubelet**: more on this below
 
 **There are also three important tools that are used to interact with/create K8s deployments:**
 
-- **kubeadm**: kubeadm is a command-line tool used for bootstrapping Kubernetes clusters. It simplifies the process of setting up and configuring the control plane nodes and joining worker nodes to the cluster. It initializes the cluster control plane, including setting up the kube-apiserver, kube-controller-manager, kube-scheduler, and etcd, Joins worker nodes to the cluster, configuring them to communicate with the control plane components,  and provides options for configuring various aspects of the cluster, such as networking, container runtime, and authentication.
+- **kubeadm**: kubeadm is a command-line tool used for bootstrapping Kubernetes clusters. It simplifies the process of setting up and configuring the control plane nodes and joining worker nodes to the cluster. It initializes the cluster control plane, including setting up the kube-apiserver, kube-controller-manager, kube-scheduler, kube-proxy, and etcd, Joins worker nodes to the cluster, configuring them to communicate with the control plane components,  and provides options for configuring various aspects of the cluster, such as networking, container runtime, and authentication.
 
 - **kubectl**: kubectl is the command-line interface (CLI) for interacting with Kubernetes clusters. It allows users to manage and control Kubernetes resources, deploy applications, and monitor cluster operations.
 
@@ -226,7 +227,7 @@ kubectl scale [object: deployment, stateful-set, etc.] [object_name] --replicas=
 
 can also be set up as : kubectl scale --flags object/name (e.g deployment/nameofDeployment)
 OR
-kubectl scale object/name --flags object/name
+kubectl scale object/name --flags
 --------------------------------------------------------------------
 
 Scale also allows users to specify one or more preconditions for the scale action.
@@ -253,6 +254,25 @@ Examples (taken from kubectl scale --help):
 11. **Get the API Version for all k8s objects**
 ```bash
 kubectl api-resources
+```
+
+12. **Map (forward) a port from a object to the host, this can be a pod, deployment, or even a service**
+```yaml
+kubectl port-forward [object_type]/[name] HostPort:ContainerPort
+```
+
+13. generate a service manifest
+```yaml
+
+kubectl create service [service_type] [name] --tcp=80:80 -o yaml --dry-run=client
+
+```
+
+13. generate a service manifest from a deployment/pod
+```yaml
+
+kubectl expose [pod or deployment]/[name] --port 80 --target-port 80 --type [type e.g. loadbalancer] -o yaml --dry-run=client
+
 ```
 
 
@@ -583,41 +603,15 @@ Some common CNIs:
 ----
 
 
-# **Kubernetes Deployments/Services in depth**
+# **Kubernetes Services in depth**
+By default when you create a deployment/pod it will not be accessible externally, since Kubernetes is essentially an isolated network, you need to add some "networking" capabilities to the deployed object to allow external access/networking configuration, this is where services come in.
 
-**In Kubernetes, we can deploy deployments or services:**
-In depth on deployments v services: [Kubernetes 101 for Beginners: Deployments vs. Services Unraveled - howtouselinux](https://www.howtouselinux.com/post/understanding-kubernetes-deployments-vs-services#:~:text=Understanding%20Kubernetes%3A%20Deployments%20vs%20Services%201%20Deployment%20Purpose%3A,by%20which%20to%20access%20them.%203%20Key%20Differences)
+The first thing to get aquianted with is the port schema that these services use / understanding traffic flow when implementing a service ...
 
-- **Deployment:** A Deployment is responsible for managing stateless applications and services by deploying a specified number of pod replicas (containers) and ensuring they are running as defined.
 
-- **Service:** A Service in Kubernetes is an abstraction that defines a logical set of pods (often spanning multiple Deployments or ReplicaSets) and a policy by which to access them.
 
-...in progress
-#### Creating a Deployment Document
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx-deployment
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: nginx
-  template:
-    metadata:
-      labels:
-        app: nginx
-    spec:
-      containers:
-        - name: nginx
-          image: nginx:latest
-          ports:
-            - containerPort: 80
-```
 
-#### Exposing Deployments via a Service
 
 ```yaml
 apiVersion: v1
@@ -640,6 +634,7 @@ spec:
 
 # **Kubernetes Networking basics**
 
+1
 
 dive into flannel calico and weave / --pod-networ-cidr stuff like that
 ----
