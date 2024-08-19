@@ -124,6 +124,14 @@ Installed packages can be found in `/var/cache/apt/archives` APT packages come i
 	- `-i`: case insensitive, ignores case, `grep -i "bob`" will find both "BOB" & "bob"
 	- `-o`: only, matches only the output vs the line of origin. e.g with a file that has the contents "my name is bob" running `grep "bob" somefile.txt ` will output the line that contains bob: "*my name is bob*", specifying `grep -o` will only output "bob"
 	- `-e / -E`: regex or extended regex matching option, e.g with a file that has the contents "*my name is bob*" running `grep -oe "i.*b" somefile.txt ` (notice the combo of o + e)  will only output "*is b*" (.* matches everything from i to b).
+	- `-v` : regex to match everything EXCEPT what is specified e.g. if you have a file with the contents: 
+		**bob** 
+		**joe** 
+		**sam** 
+		**bob1**
+		**fred**
+		the command: *cat file.txt | grep -v "bob"* will output "joe sam fred" omitting everything that includes "bob." This is useful for when you have a massive amount of data and need to quickly remove a set of values. This only works with this standalone flag on a set of data separated by newlines.
+
 
 
 

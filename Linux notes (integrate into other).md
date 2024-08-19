@@ -17,8 +17,7 @@ sed delete : `sed '1d` specify line number + d to delete that line
 
 TR
 [Tr Command in Linux with Examples | Linuxize](https://linuxize.com/post/linux-tr-command/)
-can be used to replace/delete characters e.g = `echo "hello" | tr 'hell' 'bell'` output "bello" or you can use `tr "\n " "` to eliminate newlines in a file e.g. `ls | tr "\n" " "` will print the ls command in one single line.
-
+can be used to replace/delete characters e.g = `echo "hello" | tr 'hell' 'bell'` output "bello" or you can use `tr "\n " "` to eliminate newlines in a file e.g. `ls | tr " " "\n"` will print the ls command with each entry on a newline
 
 sed v TR
 - If you need to perform complex text transformations involving patterns or conditions, `sed` is the better choice. 

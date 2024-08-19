@@ -148,7 +148,10 @@ kubeadm reset # should only be run after all nodes are deleted to ensure a clean
 6. **Apply deployment / delete deployment**
 ```
 kubectl apply -f [deployment.yaml]
-kubectl delete deployment [deployment name]
+
+kubectl delete deployment [deployment name] 
+OR you can do it in [object]/[name] format
+kubectl delete deployment/someDeploymentName
 ```
 
 **Cluster management commands:**
