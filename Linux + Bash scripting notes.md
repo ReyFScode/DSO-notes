@@ -20,6 +20,7 @@ All of these concepts will (99%) be the same on any Linux distro you use.
 - `pwd` : Prints the current working directory
 - `lscpu` : Prints details about the system processor architecture. 
 - `echo "something here"`: Prints text to stdout (console).
+- `cat / cat -b` : gets the contents of a file, -b is used to add line numbers
 - `>> / >`: Operator used to pipe output to a file (can be an existing file or new file) can be used with commands or with echo. It is important to note that **>>** will append text to the end of the file whilst **>** will overwrite the file so be careful. 
 	e.g.:
 	- `echo "hello world" >> new.txt` will append "hello world" to a file called new.txt, if it doesn't exist new.txt will be created.

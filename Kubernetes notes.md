@@ -268,12 +268,26 @@ kubectl create service [service_type] [name] --tcp=80:80 -o yaml --dry-run=clien
 
 ```
 
-13. generate a service manifest from a deployment/pod
+14. generate a service manifest from a deployment/pod
 ```yaml
 
 kubectl expose [pod or deployment]/[name] --port 80 --target-port 80 --type [type e.g. loadbalancer] -o yaml --dry-run=client
 
 ```
+
+15. get logs (output stream)
+```yaml
+# you can get logs from services/pods/deployments, for most deployments this command will pull the logs from a single pod within the deployment
+
+kubectl logs [object type: deployment,pod,service]/[name]
+
+#kubectl is oriented towards pods so if you specify:
+kubectl logs [name]
+# it will search for a pod with the matching name
+
+
+```
+
 
 
 ----
@@ -434,6 +448,11 @@ kind: pod or deployment
         
         stdin: true  
         tty: true     #stdin + tty can be used like the -dit flag in docker to keep the container in the pod running detached in the background able to be entered into a terminal
+        
+        command: ["/bin/bash", "-c", "while true; do echo hi; done"] # command is equivalent to the entrypoint command in a Dockerfile, sets the default executable for the container, can be used to supply additional args but this is best set in the args command (below) (equivalent to dockerfile CMD, see notes on dockerfiles to better understand.
+        args: ["while true; do echo hi; done"]
+
+
         
         
 ```

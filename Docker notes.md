@@ -38,7 +38,7 @@ docker info
 #this command returns information about the configuration of a specified container
 docker inspect [container_id_or_name]
 ```
-#### 4. Docker exec
+#### 4. Docker exec / attach
 ```bash
 # we use this command to enter the terminal of a detached running container/run a command inside of it
 docker exec -it [container_id_or_name] [command/shell to enter]
@@ -46,6 +46,10 @@ docker exec -it [container_id_or_name] [command/shell to enter]
 #example
 docker exec -it Ubuntu_container bash #enters the bash terminal (via -it) of a container named Ubuntu_container, without -it this would do nothing because it would just run the bash command not connect to a terminal
 docker exec Ubuntu_container free -h #runs the free -h command in the container and displays the command output
+
+# we can connect to a running containers default shell with docker attach as well:
+docker attach container_name/ID # attach will kill the container after we exit the shell exec -it will keep it running, exec is usually better to use.
+
 ```
 #### 5. List Installed Docker Images
 ```bash
@@ -124,11 +128,15 @@ Flag examples:
 
 --appending commands to the end of the run statement = you dont have to specify entrypoint, specifying entrypoint will ensure a certain command will always run whenever that container is started, but normally if you have a container that has no specified entrypoint and you need to specify a one off command you can just do something like: 'docker run ubuntu:latest /bin/echo "hello world"' and your container will pass the '/bin/echo "hello world"' command at runtime, return the output, and exit.
 
+
 Docker run example:
-# This command creates a container using the ubuntu:latest image, it is named test, it runs in the background (detached mode), it creates an interactive terminal that can be used to interact with the container, maps container port 8080 to host port 80, and mounts a volume called myVOL to /tmp in the container. It also specifies a restart policy of always and and an environment variable with a name of ENV1 that has a value of 123
-docker run -dit --name test -p 80:8080 -v myVOL:/tmp --restart always -e ENV1=123 ubuntu:latest
-# to enter this container we can use the below command (enters an interactive terminal that uses the bash shell):
-docker exec -it test bash
+# This command creates a container using the ubuntu:latest image, it is named test123, it runs in the background (detached mode), it creates an interactive terminal that can be used to interact with the container, maps container port 8080 to host port 80, and mounts a volume called myVOL to /tmp in the container. It also specifies a restart policy of always and and an environment variable with a name of ENV1 that has a value of 123
+docker run -dit --name test123 -p 80:8080 -v myVOL:/tmp --restart always -e ENV1=123 ubuntu:latest
+
+# ^ to enter this container we can use the below command (enters an interactive terminal that uses the bash shell, keeps container running on exit):
+docker exec -it test123 bash
+OR
+docker attach test123 # attach will kill the container after we exit the shell exec -it will keep it running
 ```
 
 **commands used to modify/interact with running containers**
@@ -403,7 +411,7 @@ docker build . -f [dockerfile-name] -t [desired_image_name:desired_image_tag]
 ```
 
 **Quick clarification on `CMD` vs `ENTRYPOINT`:**
-This can be confusing so here's a really simplified answer to help you, `ENTRYPOINT` is used to define the primary executable of the container, with every component of the command spaced and in quotes ,e.g. *"command", "Command2"* with `CMD` is used to provide default arguments or additional commands to the entrypoint. If you need to run a command that doesnt change at instantiation entrypoint is going to be what you need to use, you dont have to use CMD unless you want flags that are overridable at run. (try this out!):
+This can be confusing so here's a really simplified answer to help you, `ENTRYPOINT` is used to define the primary executable of the container, with every component of the command spaced and in quotes ,e.g. *"command", "Command2"* with `CMD` is used to provide default arguments or additional commands to the entrypoint. If you need to run a command that doesn't change at instantiation entrypoint is going to be what you need to use, you don't have to use CMD unless you want flags that are overridable at run. (try this out!):
 ``` Dockerfile
 # Use a base image 
 FROM ubuntu:latest 
