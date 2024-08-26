@@ -61,9 +61,75 @@ you can remove empty elements from a list with a filter:
 
 
 ### removing certain identical elements
-you can remove certain identical elements from a list with a filter:
-`list2 = list1(filter(None, list1))`
+you can remove certain identical elements from a list by converting to a set or by converting to dict and then back to list.  [python - Removing duplicates in lists - Stack Overflow](https://stackoverflow.com/questions/7961363/removing-duplicates-in-lists)
+``` python
+some_list = [1,2,3,4,4]
 
+newlist = list(dict.fromkeys(some_list)) #this uses a dictionary conversion to remove duplicates but maintain the list order, order is guaranteed to be maintained
+
+
+newlist = list(set(some_list)) # converts to a set and then back to list, a set is an unordered collection of unique values, order is not guaranteed to by maintained
+```
+
+
+
+### Shallow copies / slice notation
+
+In Python, `list[:]` creates a shallow copy of the entire list. Here's what it does in detail:
+
+- `list` is your original list.
+- `[:]` is slice notation. When used like this, it specifies a slice that starts from the beginning of the list and goes to the end.
+- The result is a new list that contains all the elements of the original list
+```python
+original_list = [1, 2, 3, 4, 5] 
+copy_of_list = original_list[:]  
+
+print(copy_of_list)  # Output: [1, 2, 3, 4, 5]`
+
+```
+
+
+### How to modify a list in place (slice assignment)
+
+`list[:]` creates a shallow copy of the list. However, when used on the left-hand side of an assignment (like `nums[:] = ...`), it doesn't create a copy. Instead, it updates the content of the original list in place. 
+e.g.
+```python
+
+SomeList = [1, 2, 3, 4, 5] 
+
+SomeList[:] = list(set(SomeList)) # this removes all duplicates from the list in place, maintaing the initial list
+
+# as opposed to:
+someList = []; somelist = list(set(someList)) # which creates a new list and modifies that, even though it has the same name the original list is no longer referenced by `SomeList`, and the original list is effectively discarded if it has no other references.
+```
+
+When you use slice notation on the left side of an assignment, you're telling Python to replace the elements of the original list with the elements on the right-hand side.
+ You can also use slice  to do other target modifications:
+ ```python
+
+# view it as [x:y] x is the index that starts the operation and y is the index that ends the operation. to make it easy use programming counting starting from 0 for the first index and true counting for the second value, e.g. [3:4] would be 0 to 3 = 4 for value one and 1 to 4 = 4 so this would target precisely the 4th index.
+
+#replace whole list
+numbers = [1, 2, 3, 4, 5] 
+numbers[:] = [10, 20, 30]  # Replaces the entire list content print(numbers). Output: [10, 20, 30]
+
+#replace set in list
+numbers = [1, 2, 3, 4, 5] 
+numbers[1:4] = [20, 30]  # Replaces the sublist [2, 3, 4] with [20, 30] print(numbers). Output: [1, 20, 30, 5]
+
+#replace specific value
+SomeList = [1, 2, 3, 4, 5]
+SomeList[3:4] = [40] # Replaces the element at index 3 (which is 4) with 40. Output: [1, 2, 3, 40, 5]
+
+#insert a new value
+SomeList = [1, 2, 3, 4, 5] 
+SomeList[3:3] = [40] # Inserts 40 at index 3 (element 4), pushing the existing elements to the right. Output: [1, 2, 3, 40, 4, 5]
+
+#delete specific value(s)
+SomeList = [1, 2, 3, 4, 5, 3, 6] 
+del SomeList[1:3] # Removes elements at positions 1 to 2 (2, 3). Output: [1, 4, 5, 3, 6]
+
+```
 
 
 
