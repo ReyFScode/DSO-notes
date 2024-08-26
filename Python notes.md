@@ -71,6 +71,17 @@ newlist = list(dict.fromkeys(some_list)) #this uses a dictionary conversion to r
 newlist = list(set(some_list)) # converts to a set and then back to list, a set is an unordered collection of unique values, order is not guaranteed to by maintained
 ```
 
+### sorting a list
+you can sort a list using the `sorted` function:
+``` python
+str1 = [-1, 1, 9, 43, -98]
+
+str1 = sorted(str1) # makes new list str1 and sorts it
+str1[:] = sorted(str1) # uses slice assignment to sort the original list more on slice assignment below
+
+# output = [-98, -1, 1, 9, 43]
+```
+
 
 
 ### Shallow copies / slice notation
