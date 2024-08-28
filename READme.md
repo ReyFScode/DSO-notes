@@ -3,18 +3,18 @@ These are all my personal study notes, I reccomend going through 2 per day each 
 ## Table of contents:
 
 **-DSO core:**
-  - -[DevOps concepts](https://github.com/ReyFScode/DSO-notes/blob/main/DEVOPS%20concepts.md)
-    - ---[GIT notes](https://github.com/ReyFScode/DSO-notes/blob/main/GIT%20notes.md)
+- -[DevOps concepts](https://github.com/ReyFScode/DSO-notes/blob/main/DEVOPS%20concepts.md)
+- --[GIT notes](https://github.com/ReyFScode/DSO-notes/blob/main/GIT%20notes.md)
 
 **-Containerization:**
 - -[Docker](https://github.com/ReyFScode/DSO-notes/blob/main/Docker%20notes.md)
-- ----[K8s](https://github.com/ReyFScode/DSO-notes/blob/main/Kubernetes%20notes.md)
+- --[K8s](https://github.com/ReyFScode/DSO-notes/blob/main/Kubernetes%20notes.md)
 
 **-IAC/tools:**
 - -[Ansible V Terraform](https://github.com/ReyFScode/DSO-notes/blob/main/Ansible%20V%20terraform.md)
 - --[Ansible](https://github.com/ReyFScode/DSO-notes/blob/main/Ansible%20Notes.md)
 - ---[Terraform](https://github.com/ReyFScode/DSO-notes/blob/main/Terraform%20notes.md)
-- -----[Other DSO tools (IAC, build, etc.)](https://github.com/ReyFScode/DSO-notes/blob/main/Other%20DSO%20tools.md)
+- ----[Other DSO tools (IAC, build, etc.)](https://github.com/ReyFScode/DSO-notes/blob/main/Other%20DSO%20tools.md)
 
 **-Systems/Networking/Application tech:**
 - --[Linux](https://github.com/ReyFScode/DSO-notes/blob/main/Linux%20%2B%20Bash%20scripting%20notes.md)
