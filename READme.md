@@ -17,9 +17,9 @@ These are all my personal study notes, I reccomend going through 2 per day each 
 - ----[Other DSO tools (IAC, build, etc.)](https://github.com/ReyFScode/DSO-notes/blob/main/Other%20DSO%20tools.md)
 
 **-Systems/Networking/Application tech:**
-- --[Linux](https://github.com/ReyFScode/DSO-notes/blob/main/Linux%20%2B%20Bash%20scripting%20notes.md)
-- ----[Networking](https://github.com/ReyFScode/DSO-notes/blob/main/Essential%20networking%20concepts.md)
-- ------[Web/Applicaton tech](https://github.com/ReyFScode/DSO-notes/blob/main/Web%2BApplication%20technologies.md)
+- -[Linux](https://github.com/ReyFScode/DSO-notes/blob/main/Linux%20%2B%20Bash%20scripting%20notes.md)
+- --[Networking](https://github.com/ReyFScode/DSO-notes/blob/main/Essential%20networking%20concepts.md)
+- ----[Web/Applicaton tech](https://github.com/ReyFScode/DSO-notes/blob/main/Web%2BApplication%20technologies.md)
 
 **-Cloud:**
 - -[AWS](https://github.com/ReyFScode/DSO-notes/blob/main/AWS%20NOTES.md)
