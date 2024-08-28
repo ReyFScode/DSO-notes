@@ -257,8 +257,6 @@ Using the `needs` keyword allows you to control the order of job execution and e
 ---
 # Provider 2 - Gitlab CI/CD
 
-Sure, here's an equivalent set of guidelines for GitLab CI/CD based on your GitHub Actions notes:
-
 ## GitLab CI/CD Syntax and Examples:
 
 ### 1. .gitlab-ci.yml File Structure:
