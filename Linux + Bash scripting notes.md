@@ -65,6 +65,11 @@ If you remember from above this symbol `|` is a pipe. When are stitch commands t
 2. **Sockets:**
 Sockets provide a more versatile form of IPC, allowing communication between unrelated processes, either on the same machine or across a network. There are two types of sockets:  TCP/IP sockets (stream sockets (TCP) and datagram sockets (UDP), and raw sockets) and UNIX sockets. TCP/IP sockets provide reliable network connection-oriented communication, while UNIX sockets provide Interprocess communication on the same machine. Sockets are created using the `socket()` system call and can be used with various other system calls like `bind()`, `listen()`, `connect()`, `accept()`, `send()`, and `recv()`. *reference*: https://www.baeldung.com/linux/unix-vs-tcp-ip-sockets
 
+>**Named Pipes V sockets for IPC on the same host:** 
+>**FIFO pipes** are chosen for simpler, **unidirectional** data streaming tasks where ease of use and simplicity are paramount.  **Unix sockets** are utilized when you need advanced IPC features, bidirectional communication, or better performance for complex data transfer scenarios.
+
+
+
 ##### **processes and signals**
 A process is defined as a running instance of a program,  we can view processes by running the `ps` command with varying flags `ps -aux` is usually the standard (all processes with a high level of detail), but to get specific process we specify `ps -C [name e.g systemd] `. Signals are sent to processes to invoke an action, the commonly used ones are SIGKILL invoked with `kill -9 [pid]` which forcefully kills a process, or SIGINT invoked with ctrl+c which interrupts a program and requests a graceful termination.
 
