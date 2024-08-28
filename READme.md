@@ -8,7 +8,7 @@ These are all my personal study notes, I reccomend going through 2 per day each 
 
 **-Containerization:**
 - -[Docker](https://github.com/ReyFScode/DSO-notes/blob/main/Docker%20notes.md)
-- --[K8s](https://github.com/ReyFScode/DSO-notes/blob/main/Kubernetes%20notes.md)  |  <-[flashcards](https://quizlet.com/931874317/k8s-flash-cards/)
+- --**[K8s]**(https://github.com/ReyFScode/DSO-notes/blob/main/Kubernetes%20notes.md)  |  <-[flashcards](https://quizlet.com/931874317/k8s-flash-cards/)
 
 **-IAC/tools:**
 - -[Ansible V Terraform](https://github.com/ReyFScode/DSO-notes/blob/main/Ansible%20V%20terraform.md)
