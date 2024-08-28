@@ -29,6 +29,19 @@ These are all my personal study notes, I reccomend going through 2 per day each 
 
 
 
----
+-------
 ## flashcard links
-- k8s: https://quizlet.com/931874317/k8s-flash-cards/
+
+**-DSO core:**
+
+**-Containerization:**
+
+- --[K8s](https://quizlet.com/931874317/k8s-flash-cards/)
+
+**-IAC/tools:**
+
+**-Systems/Networking/Application tech:**
+
+**-Cloud:**
+
+**-other:**
