@@ -3,8 +3,8 @@ These are all my personal study notes, I reccomend going through 2 per day each 
 ## Table of contents:
 
 **-DSO core:**
-- -[DevOps concepts](https://github.com/ReyFScode/DSO-notes/blob/main/DEVOPS%20concepts.md)
-  - ---[GIT notes](https://github.com/ReyFScode/DSO-notes/blob/main/GIT%20notes.md)
+  - -[DevOps concepts](https://github.com/ReyFScode/DSO-notes/blob/main/DEVOPS%20concepts.md)
+    - ---[GIT notes](https://github.com/ReyFScode/DSO-notes/blob/main/GIT%20notes.md)
 
 **-Containerization:**
 - -[Docker](https://github.com/ReyFScode/DSO-notes/blob/main/Docker%20notes.md)
