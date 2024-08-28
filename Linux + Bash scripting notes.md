@@ -21,13 +21,17 @@ All of these concepts will (99%) be the same on any Linux distro you use.
 - `lscpu` : Prints details about the system processor architecture. 
 - `echo "something here"`: Prints text to stdout (console).
 - `cat / cat -b` : gets the contents of a file, -b is used to add line numbers
-- `>> / >`: Operator used to pipe output to a file (can be an existing file or new file) can be used with commands or with echo. It is important to note that **>>** will append text to the end of the file whilst **>** will overwrite the file so be careful. 
+
+- `>> / >`: Operator used to pipe output to a file (called output redirection, can be an existing file or new file) can be used with commands or with echo. It is important to note that **>>** will append text to the end of the file whilst **>** will overwrite the file so be careful. 
 	e.g.:
 	- `echo "hello world" >> new.txt` will append "hello world" to a file called new.txt, if it doesn't exist new.txt will be created.
 	- `ls -al > new.txt` will overwrite the contents of new.txt with the output of the *ls -al* command, will create a new file if there is no new.txt.
+	
+- `<` : this operator is used for input redirection, while > pipes output from a command to a file, this output passes file contents to a command, for instance instead of having to do `cat test.txt | grep "something"` to search for 'something' in the test.txt file we can just do `grep "something" < test.txt` saving us some characters
+
 - `|` : This is called the pipe operator, this is used to pass the output value of one command to another.
 	e.g.: 
-	- `lscpu | grep -io "flags"` will take the output value of *lscpu* and pass it to the *grep -io* command which will do a match-word-only case-insensitive search for the word "flags", if this word is found in the output of *lscpu* it will be printed to stdout.
+	- `lscpu | grep -i vulnerability | sed 's/a/b/g'` will take the output value of *lscpu* and pass it to the *grep -io* command which will do a case-insensitive search for any lines with "vulnerability" it will then pass this parsed output to the sed command and replace 'a' with 'b' giving you a final output of  all lines with the world "vulnerability" with all 'a' characters replaced with 'b'.
 
 
 #### **Text Editors:**
