@@ -7,12 +7,10 @@ add multi v mono repo for repo strategies
 add cross reference for multi/monorepo for gitflow v trunk:
 
 
-# generated, expand on:
+#, expand on:
 
 
 
-
-Certainly! Here’s a basic overview of Git Flow and Trunk-Based Development with ASCII diagrams to illustrate the branching models.
 
 ### **1. Git Flow vs. Trunk-Based Development**
 
@@ -210,6 +208,6 @@ In a mono-repo strategy, all projects or services are stored in a single reposit
 +------------------+
 ```
 
-In summary:
+conclusion:
 - **Git Flow** fits well with **multi-repo** for clear branch management but can be complex in a mono-repo setup.
 - **Trunk-Based Development** is simpler and often preferred with **mono-repo** due to its continuous integration model, but it can also work with **multi-repo** if managed carefully.
