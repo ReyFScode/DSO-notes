@@ -204,13 +204,21 @@ kubectl create deployment [name] --image [something:something]
 
 ```
 
-9. **Generate a single pod / create a pod YAML**
+9. **Generate a single container pod / create a pod YAML**
 ```bash
 #Pods, like deployments, can be defined via a yaml file as well, to generate a pod yaml we use kubectl run pass in pod specifications via flags like --image and then specify -o yaml + --dry-run=client
 kubectl run [container/pod name] --image [something:something] -o yaml --dry-run=client > [somename].yml
 
-#if we omit the `-o --dry-run... >` section we can run a single pod (Container), to connect we can add -it, similar to docker run
+#if we omit the `-o --dry-run... >` section we can run a single pod (Container), to connect we can add -it, similar to docker run (-it cant be used in conjunction with --dry-run=client -o yaml, it will immediately take you into the container instead of simply generating the pod manifest, to add -it functionality to a pod created via a manifest you must add stdin: true & tty: true to the spec section)
 kubectl run -it [container/pod name] --image [something:something]
+
+#some other flags we can add to our pod/container (can be used with --dry-run/-o):
+--image-pull-policy IfNotPresent, etc. # > specifies a pull policy for the image (e.g. if not present only pulls the image if it cant be found locally)
+
+--restart Always, never, etc. # > specifies a restart policy for the pod
+
+--port 80 # > specifies a container port to expose
+
 
 ```
 
@@ -445,18 +453,23 @@ kind: pod or deployment
       containers:
       - image: ubuntu:latest
         name: ubuntu
-        
+#-----------------------
+		imagePullPolicy: IfNotPresent # specifies the image pull policy, IfNotPresent means that the image will look for the image localy first and if it's not present it will then reach out and attempt to pull the image.
+#-----------------------
         stdin: true  
         tty: true     #stdin + tty can be used like the -dit flag in docker to keep the container in the pod running detached in the background able to be entered into a terminal
-        
+#-----------------------
         command: ["/bin/bash", "-c", "while true; do echo hi; done"] # command is equivalent to the entrypoint command in a Dockerfile, sets the default executable for the container, can be used to supply additional args but this is best set in the args command (below) (equivalent to dockerfile CMD, see notes on dockerfiles to better understand.
         args: ["while true; do echo hi; done"]
-
-
-        
+#-----------------------
+	    ports:
+	    - containerPort: 80   # specifies a port for the container to expose
+#-----------------------
+	  restartPolicy: Never # specifies a restart policy for the container, this means that if it shuts down the container will not restart
+		 
         
 ```
-
+#fleshout_the_image_pull_policy_section / flesh out syntax e.g. manifest entries begin with a lowercase with each following word capitalized ( restartPolicy)
 
 **deployments**
 

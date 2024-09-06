@@ -52,6 +52,9 @@ All of these concepts will (99%) be the same on any Linux distro you use.
 
 
 
+#### **User space and kernel space**
+
+
 #### **Subshell execution / variable expansion**
 "" v ''
 $()
