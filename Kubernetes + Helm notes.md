@@ -289,9 +289,13 @@ kubectl expose [pod or deployment]/[name] --port 80 --target-port 80 --type [typ
 
 kubectl logs [object type: deployment,pod,service]/[name]
 
-#kubectl is oriented towards pods so if you specify:
+# the kubectl logs command defaults to pods so if you specify:
 kubectl logs [name]
-# it will search for a pod with the matching name
+# it will default to searching for a pod with the matching name
+
+# to get logs from a particular container within the pod use the -c flag
+kubectl logs pods/somepod -c containerName  
+
 
 
 ```
