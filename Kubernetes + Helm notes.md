@@ -173,9 +173,12 @@ kubectl get pods
 kubectl get pods -o wide #verbose get, use this
 ```
 
-4. **Describe Pod Details**
+4. **Describe an object**
 ```bash
-kubectl describe pod <pod_name>
+# describe gets details about a specific k8s deployment object
+kubectl describe object/name
+#object can be pod/deployment/service...
+
 ```
 
 5. **Describe active deployments**
