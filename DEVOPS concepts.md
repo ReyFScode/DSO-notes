@@ -6,7 +6,6 @@ add multi v mono repo for repo strategies
 
 add cross reference for multi/monorepo for gitflow v trunk:
 
-
 #, expand on:
 
 
@@ -20,7 +19,6 @@ add cross reference for multi/monorepo for gitflow v trunk:
 Git Flow is a branching model that uses multiple long-lived branches to manage the development process. It is designed to facilitate parallel development, feature integration, and release management.
 
 **Key Branches:**
-
 ```
             +------------------+
             |      master       |

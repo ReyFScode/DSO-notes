@@ -404,7 +404,7 @@ status: {}
 Here it defines that the pod should include a single container that uses the ubuntu:latest image and has the name 'container1', the containers section is the only required information for this section. 
 For further customization It also specifies:
  - an empty resources section (this section can be used to define resource requests and limits for the container), 
- - a dns/restart policy for the pod
+ - a dns/restart policy for the pod 
  - and the status section set to {} which allows Kubernetes the ability to populate this field with runtime information about the Pod's state.
 
 

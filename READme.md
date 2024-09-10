@@ -22,7 +22,7 @@ These are all my personal study notes, I reccomend going through 2 per day each 
 - ----[Web/Applicaton tech](https://github.com/ReyFScode/DSO-notes/blob/main/Web%2BApplication%20technologies.md)
 
 **-Cloud:**
-- -[AWS](https://github.com/ReyFScode/DSO-notes/blob/main/AWS%20NOTES.md)
+- -[AWS](https://github.com/ReyFScode/DSO-notes/blob/main/AWS%20NOTES.md)  |  <-[flashcards](https://quizlet.com/867909308/aws-csa-ccp-exam-study-guide-flash-cards/)
 
 **-other:**
 - -[hyper-v](https://github.com/ReyFScode/DSO-notes/blob/main/Hyper%20-%20V%20notes.md)

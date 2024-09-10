@@ -43,7 +43,7 @@ Terraform's state file records the current state of your infrastructure. It's es
 ---
 
 # **Installing Terraform--**
-To get started with Terraform, you need to install it on your local machine. Here's how:
+To get started with Terraform, you need to install it on your local machine. Here's how (this covers downloading from .zip, there are also package based installation instructions on the terraform website)
 #### 1. Download Terraform:
 Visit the official Terraform website (https://www.terraform.io/downloads.html) and download the appropriate binary for your operating system (e.g., Windows, macOS, Linux).
 #### 2. Install Terraform:
@@ -64,6 +64,37 @@ terraform --version
 ```
 
 You should see the installed Terraform version displayed. This confirms that Terraform is installed and ready to use.
+
+---
+
+# **Core terraform terminology**
+
+
+1.  **Provider**: a provider in terraform is a plugin that defines/manages resources for a specific infrastructure platform (e.g. AWS, Azure, VMware, etc.). 
+
+2. **Resource:** A resource is a infrastructure component that you specify to create/manage/change via Terraform (e.g. compute instances, databases, cloud networks, etc.).
+
+3. **HCL:** stands for Hashicorp Configuration Language
+ 
+4. **Module:** A module is a reusable/encapsulated unit of HCL code, we use modules to promote one of the core IAC pillars which is reusability/portability, we can reuse/port modules to enhance solution capabilities. Modules can be created by you or come from the Terraform Registry, which hosts community-contributed modules.
+
+5. **outputs:** These are values created by TF after infrastructure has been created /updated. They display information about your infrastructure.
+
+6. **State file:** This file is created by TF and keeps track of the current state of your infrastructure. This file helps Terraform/you understand what resources have been created + changes that have occurred/need to occur.
+
+7. **Plan:** The `Terraform Plan` command generates a plan + allows you to preview infrastructure changes that will be applied. On the backend, once you run this command, TF will analyze configuration specifications and compare them with the current state, it will then generate output that details actions that will be taken if you apply the changes.
+
+8. **Apply:** The `terraform apply` command applies changes specified in the created plan. It will create/update/delete resources depending on your configurations.
+
+9. **Workspaces:** TF workspaces are used to manage multiple environments (Dev, testing, staging, production) via separate configs/state files. These are essential for keeping your environment infrastructure files organized.
+
+10. **Remote backend storage:** Some form of this term is often used to describe a state file storage location that is not local, can be object storage server, cloud storage, HashiCorp TF cloud, etc.
+   
+   
+
+
+
+
 
 
 ---
