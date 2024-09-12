@@ -30,8 +30,22 @@ sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificat
 
 you can turn swap back on with:   `sudo swapon -a` , you can remove the hold from the packages with:   `sudo apt-mark unhold kubelet kubeadm kubectl`
 
+
+---
+### Common errors
+
 **!! Common error - *container runtime is not running*:**  sometimes you may get a "container runtime is not running" error when starting/joing a kubernetes deployment, to remedy this you can run this command:  `rm /etc/containerd/config.toml && systemctl restart containerd`   After running the command retry your init command 
 
+**!! LESS COMMON ERROR - *The connection to the server x.x.x.:6443 was refused - did you specify the right host or port?* Even after making directory / exporting admin kube var.**: not sure why this occurs, some say its a version specific bug. on master node run:
+1. sudo -i 
+2. swapoff -a 
+3. systemctl restart kubelet
+4. exit
+5. strace -eopenat kubectl version
+Then use try again, you can use strace without the flag to monitor system calls 
+
+or if you can reset the cluster and re-init run:
+**sudo kubeadm init ; sudo kubeadm init phase bootstrap-token**
 
 ---
 
@@ -108,7 +122,7 @@ Kubernetes architecture consists of several components working together to manag
 
 In summary, kubeadm is used for cluster bootstrap and initialization, kubectl is used for cluster management and resource manipulation, and kubelet is responsible for managing containers on individual nodes and ensuring their health and availability.
 
-
+#flesh_out--Most control plane components run as pods on the master node. To view control plane components run `kubectl get pods -n kube-system` on the control plane, you can use `describe resourcename` to get logs.
 
 ----
 
@@ -216,7 +230,7 @@ kubectl run [container/pod name] --image [something:something] -o yaml --dry-run
 kubectl run -it [container/pod name] --image [something:something]
 
 #some other flags we can add to our pod/container (can be used with --dry-run/-o):
---image-pull-policy IfNotPresent, etc. # > specifies a pull policy for the image (e.g. if not present only pulls the image if it cant be found locally)
+--image-pull-policy IfNotPresent, etc. # > specifies a pull polic the image (e.g. if not present only pulls the image if it cant be found locally)
 
 --restart Always, never, etc. # > specifies a restart policy for the pod
 
@@ -545,7 +559,7 @@ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config # the admin.conf file i
 
 sudo chown $(id -u):$(id -g) $HOME/.kube/config # Changes the ownership of the config file in the .kube directory to the current user.
 ```
-Don't export the admin.conf path.
+**Don't export the admin.conf path. I find that it can make cluster management difficult/break, simply run init as sudo and make the directory.**
 After you make the directory be sure to execute all kubectl commands as the regular user, don't use a sudo shell. You will have configured k8s to run under the current user with step #2. 
 
 3) Now we will move to the next step, downloading the calico CNI for use by our cluster, run the below steps on the master node:
@@ -717,4 +731,16 @@ dive into flannel calico and weave / --pod-networ-cidr stuff like that
 
   
 # **Helm Notes**
-....
+## what is Helm?
+
+In systems we often use packages, a "package" refers to a bundle of binaries/libraries/data and related resources that can be easily installed (often with a single command), managed, and used on a system.
+
+Helm is a package manager tool used in Kubernetes. It operates similar to how you use a package manager like npm for JavaScript or apt for Debian-based Linux distributions.
+
+With Helm, you can easily define, install, and manage applications on Kubernetes using pre-configured templates called "charts." These charts bundle together all the necessary resources (like configurations and services) needed to deploy an application. So, instead of manually setting up each part of your application, Helm lets you deploy it all at once with a simple command.
+## Installing Helm:
+Helm can be installed easily from its binary run: `curl [desired release] -o [nameOfRelease] ; tar -zxvf [nameOfRelease] ; mv linux-amd64/helm /usr/local/bin/helm` 
+get name of release here: https://github.com/helm/helm/releases
+install docs here: https://helm.sh/docs/intro/install/
+
+
