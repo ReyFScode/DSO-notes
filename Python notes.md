@@ -143,8 +143,15 @@ del SomeList[1:3] # Removes elements at positions 1 to 2 (2, 3). Output: [1, 4, 
 ```
 
 
+## Modules v Libraries
+### **Modules:**
 
+- **Definition**: A module is a single file containing Python code. It can define functions, classes, and variables, and it can also include runnable code.
+- **Usage**: Modules help organize code by breaking it into smaller, manageable parts. For example, a module might be named `math_operations.py` and contain functions for various mathematical operations.
+### **Libraries:**
 
+- **Definition**: A library is a collection of modules and packages bundled together to provide a set of related functionalities. It is a broader term that can encompass many modules.
+- **Usage**: Libraries offer a wide range of functionalities. For example, the `pandas` library includes multiple modules and sub-packages for data manipulation and analysis.
 
 # Variables
 

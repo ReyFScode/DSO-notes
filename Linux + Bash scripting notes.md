@@ -274,5 +274,15 @@ tricks:
 
  combining multi-command output in the same line, use **echo -n** e.g. `echo -n "$(pwd)" ; echo "/somefile"` to display the pwd + custom filename on the same line.
 
-
 add setfacl for adding access to a directory .../ file?
+
+Strace - traces system calls for specified command: e.g. *strace ls*
+
+
+bash but also for shell loops: e.g.
+*while true;*
+*do echo hello;*
+*done*
+
+can be commed like: *while true; do echo hello; done*
+
