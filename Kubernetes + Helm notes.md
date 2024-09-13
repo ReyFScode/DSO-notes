@@ -2,7 +2,6 @@
 study set: [K8s Flashcards | Quizlet](https://quizlet.com/931874317/k8s-flash-cards/)
 Kubernetes, commonly referred to as K8s, is an open-source container orchestration platform designed to automate the deployment, scaling, and management of containerized applications. Kubernetes enables organizations to manage containerized workloads across a cluster of machines, providing flexibility, scalability, and resilience.
 
-#goThrough ayush kumar on linkedin to distill hsi learning materials
 #add info on cgroups drivers / container runtimes [Configuring a cgroup driver | Kubernetes](https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/)  /   [Container Runtimes | Kubernetes](https://kubernetes.io/docs/setup/production-environment/container-runtimes/)
 
 
@@ -710,6 +709,9 @@ dive into flannel calico and weave / --pod-networ-cidr stuff like that
   
   
   
+
+
+
 
 
 ---
