@@ -1,4 +1,4 @@
-
+to use arm arch in ec2 you must choose gravitron based instance types (t4g...)
 
 
 
