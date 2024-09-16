@@ -134,37 +134,37 @@ my-terraform-project/
 Here are some common terraform commands that you will use to perform operations in terraform:
 
 
-1. **terraform init**
+1. **terraform init**:
 Initializes a new or existing Terraform configuration by downloading required modules, plugins, and setting up the working directory.
 
-2. **terraform plan**
+2. **terraform plan**:
 Generates and shows the execution plan for the infrastructure. This command doesn't make changes but previews what will be created, updated, or destroyed.
 
-3. **terraform apply**
+3. **terraform apply**:
 Applies the changes defined in the Terraform configuration to provision the infrastructure. It will ask for confirmation unless you use the `-auto-approve` flag.
 
-4. **terraform destroy**
+4. **terraform destroy**:
 Destroys all the resources created by your Terraform configuration. Like `apply`, it will ask for confirmation unless you use the `-auto-approve` flag.
 
-5. **terraform show**
+5. **terraform show**:
 Displays information about the Terraform state or the plan file.
 
-6. **terraform output**
+6. **terraform output**:
 Retrieves the output values defined in your Terraform configuration. You can use this to get specific values like IP addresses, instance IDs, etc.
 
-7. **terraform validate**
+7. **terraform validate**:
 Validates the syntax and configuration of your Terraform files. This command checks whether the configuration is syntactically valid.
 
-8. **terraform fmt**
+8. **terraform fmt**:
 Formats your Terraform configuration files in a standard format for readability and consistency.
 
-9. **terraform import**
+9. **terraform import**:
 Imports an existing resource into Terraform's state. This command allows you to bring resources not managed by Terraform under its management.
 ```bash
 terraform import aws_instance.my_instance i-1234567890abcdef0
 ```
 
-10. **terraform state**
+10. **terraform state**:
 Manages and inspects the state of your Terraform-managed infrastructure. Common subcommands include `list`, `show`, `mv`, and `rm`.
 ```bash
 # View resources in the state
@@ -174,22 +174,22 @@ terraform state list
 terraform state show aws_instance.my_instance
 ```
 
-11. **terraform taint**
+11. **terraform taint**:
 Marks a resource for destruction and recreation on the next `terraform apply`. Useful if you want to force a resource to be replaced.
 ```bash
 terraform taint aws_instance.my_instance
 ```
 
-12. **terraform untaint**
+12. **terraform untaint**:
 Removes the tainted state from a resource, meaning it will not be destroyed and recreated.
 ```bash
 terraform untaint aws_instance.my_instance
 ```
 
-13. **terraform refresh**
+13. **terraform refresh**:
 Updates the Terraform state file with the current real-world status of your infrastructure without making any changes.
 
-14. **terraform workspace**
+14. **terraform workspace**:
 Manages multiple workspaces for managing different environments or deployments with the same Terraform configuration.
 ```bash
 # Create a new workspace
@@ -202,19 +202,19 @@ terraform workspace select dev
 terraform workspace list
 ```
 
-15. **terraform graph**
+15. **terraform graph**:
 Generates a visual representation of the dependency graph of Terraform resources.
 
-16. **terraform console**
+16. **terraform console**:
 Launches an interactive console for evaluating expressions and querying Terraform resources.
 
-17. **terraform state mv**
+17. **terraform state mv**:
 Moves resources from one state to another, useful for renaming or reorganizing resources.
 ```bash
 terraform state mv aws_instance.old_name aws_instance.new_name
 ```
 
-18. **terraform apply -target=**
+18. **terraform apply -target=**:
 Apply changes only to a specific resource or module.
 ```bash
 terraform apply -target=aws_instance.my_instance
