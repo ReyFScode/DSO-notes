@@ -108,8 +108,10 @@ my-terraform-project/
 ```
 
 - **main.tf**: The primary configuration file where you define your infrastructure resources and their relationships.
-  
-- **.terraform**: The primary configuration file where you define your infrastructure resources and their relationships.
+
+- **.terraform folder / .terraform.lock.hcl**: both are auto-generated upon `terraform init`. 
+	The *.terraform folder* contains a standard license.txt and is where Terraform caches provider plugins & records workspace information. 
+	The *lock.hcl* file pins down the exact versions of the providers being used, this ensures that Terraform knows which dependency versions are compatible with your current setup and helps prevent issues that could arise from updates to those providers.
 
 - **variables.tf**: This file defines input variables used in your configuration. Variables make your code more flexible and customizable.
 
@@ -121,7 +123,7 @@ my-terraform-project/
 
 - **providers.tf**: Configuration file for specifying provider credentials and settings.
 
-- **modules/**: A directory for organizing reusable modules, which help keep your code DRY  and promote code reuse.
+- **modules/**: A directory for organizing reusable modules, which help keep your code DRY and promote code reuse.
 
 
 
@@ -246,7 +248,7 @@ output "instance_public_ip" {
 ```
 In this example:
 
-- We specify the AWS provider and credentials.
+- We specify the AWS provider
 - We define an EC2 instance resource with its configuration.
 - We create an output to display the public IP address of the instance.
 

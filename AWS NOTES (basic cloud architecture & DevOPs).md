@@ -30,6 +30,67 @@ to use arm arch in ec2 you must choose gravitron based instance types (t4g...)
 
 
 
+]
+
+
+---
+
+# Common AWS resources
+**What it is:** The AWS Command Line Interface (CLI) is a unified tool that provides a :**
+
+
+
+
+
+
+---
+
+# AWS VPCs, an overview and how to create
+**What it is:** The AWS Command Line Interface (CLI) is a unified tool that provides a command-line interface for managing your Amazon Web Services (AWS) resources. It enables you to interact with AWS services via scripts or commands from 
+
+
+
+
+
+---
+
+# AWS Databases
+**What it is:** The AWS Command Line Interface (CLI) is a unified tool that provides a command-line interface for managing your Amazon Web Services (AWS) resources. It enables you to interact with AWS services via scripts or commands from 
+
+
+
+
+
+---
+
+# AWS messaging/streaming
+**What it is:** The AWS Command Line Interface (CLI) is a unified tool that provides a command-line interface for managing your Amazon Web Services (AWS) resources. It enables you to interact with AWS services via scripts or commands from 
+
+
+
+
+---
+
+# AWS ECS, ECR, EKS
+**What it is:** The AWS Command Line Interface (CLI) is a unified tool that provides a command-line interface for managing your Amazon Web Services (AWS) resources. It enables you to interact with AWS services via scripts or commands from 
+
+##### For EKS please see the Kubernetes notes
+
+
+
+
+
+---
+
+# AWS DevOPS
+**What it is:** The AWS Command Line Interface (CLI) is a unified tool that provides a command-line interface for managing your Amazon Web Services (AWS) resources. It enables you to interact with AWS services via scripts or commands from 
+
+
+
+
+
+
+
 
 ---
 #Random/integrate in
