@@ -159,13 +159,13 @@ kubectl delete node [node-name]
 kubeadm reset # should only be run after all nodes are deleted to ensure a clean cleanup
 ```
 
-6. **Apply deployment / delete deployment**
-```
-kubectl apply -f [deployment.yaml]
+6. **Apply manifest .yml
+```yaml
+kubectl apply -f [mainfest name.yaml]
 
-kubectl delete deployment [deployment name] 
-OR you can do it in [object]/[name] format
-kubectl delete deployment/someDeploymentName
+kubectl delete [object] [name] (e.g deployment test_deployment)
+ # OR you can do it in [object]/[name] format
+kubectl delete deployment/test_deployment
 ```
 
 **Cluster management commands:**
@@ -191,12 +191,12 @@ kubectl get pods -o wide #verbose get, use this
 # describe gets details about a specific k8s deployment object
 kubectl describe object/name
 #object can be pod/deployment/service...
-
 ```
 
 5. **Describe active deployments**
 ```
 kubectl get deployments
+kubectl get deployments -o wide # more descriptive
 ```
 
 6. **Enter a Kubernetes pod**
@@ -228,8 +228,9 @@ kubectl run [container/pod name] --image [something:something] -o yaml --dry-run
 #if we omit the `-o --dry-run... >` section we can run a single pod (Container), to connect we can add -it, similar to docker run (-it cant be used in conjunction with --dry-run=client -o yaml, it will immediately take you into the container instead of simply generating the pod manifest, to add -it functionality to a pod created via a manifest you must add stdin: true & tty: true to the spec section)
 kubectl run -it [container/pod name] --image [something:something]
 
+#---------------------------------------------------------------
 #some other flags we can add to our pod/container (can be used with --dry-run/-o):
---image-pull-policy IfNotPresent, etc. # > specifies a pull polic the image (e.g. if not present only pulls the image if it cant be found locally)
+--image-pull-policy IfNotPresent, etc. # > specifies a pull policy the image (e.g. if not present only pulls the image if it cant be found locally)
 
 --restart Always, never, etc. # > specifies a restart policy for the pod
 
@@ -287,16 +288,12 @@ kubectl port-forward [object_type]/[name] HostPort:ContainerPort
 
 13. **generate a service manifest**
 ```yaml
-
 kubectl create service [service_type] [name] --tcp=80:80 -o yaml --dry-run=client
-
 ```
 
-14. **generate a service manifest from a deployment/pod**
+14. **kubectl expose (generate a service manifest from a deployment/pod)**
 ```yaml
-
 kubectl expose [pod or deployment]/[name] --port 80 --target-port 80 --type [type e.g. loadbalancer] -o yaml --dry-run=client
-
 ```
 
 15. **get logs (output stream)**
