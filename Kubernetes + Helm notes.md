@@ -230,9 +230,11 @@ kubectl run -it [container/pod name] --image [something:something]
 
 #---------------------------------------------------------------
 #some other flags we can add to our pod/container (can be used with --dry-run/-o):
---image-pull-policy IfNotPresent, etc. # > specifies a pull policy the image (e.g. if not present only pulls the image if it cant be found locally)
+#---**NOTE: the supplied value after the flag is always capitalized---
 
---restart Always, never, etc. # > specifies a restart policy for the pod
+--image-pull-policy IfNotPresent, Always, etc. # > specifies a pull policy the image (e.g. if not present only pulls the image if it cant be found locally)
+
+--restart Always, Never, etc. # > specifies a restart policy for the pod
 
 --port 80 # > specifies a container port to expose
 
