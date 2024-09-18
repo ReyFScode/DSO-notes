@@ -280,13 +280,13 @@ tasks:
 
 
 **Blocks**
-
+...
 
 
 ---
-# **Roles**
+# **Roles & Includes/Imports
 #ADDrolesinfo [How to Use Ansible Roles to Abstract your Infrastructure Environment | DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-use-ansible-roles-to-abstract-your-infrastructure-environment)
-
+##### Roles
 Ansible roles are a way we can organize playbooks and create reusable task-sets at the same time. Roles are essentially groups of tasks placed together. 
 in our ansible directory (add how to customize location) we create a folder "roles", in this folder we create a folder (named whatever the role should be called e.g. some_role), and inside that a folder called tasks. so we have /etc/ansible/roles/some_role/tasks , inside the tasks folder we put a file called main.yml, we can input the tasks starting at space 0, this is useful because it allows you to not have to worry about spacing + allows for you to create reusable task modules.
 
@@ -318,10 +318,95 @@ We call roles by adding it to the top level of the ansible play, roles will be e
  
 ```
 
+#### Task + Role Includes/imports:
+Another way to promote reusability & precisely control the task flow within your ansible playbooks, you can opt to include/import tasks and roles.
+
+###### **ROLE import/includes:**
+- **Roles with the `roles` Keyword**: When you use the `roles` keyword in a playbook, all tasks defined in those roles run before any tasks defined directly in the playbook. This is a structured way to ensure that certain roles execute first.
+
+- **Inserting Roles with `import_role` and `include_role`**:
+  - **`import_role`**: This allows you to import a role at a specific point in your tasks. The tasks from that role will run in the order you specify within the playbook.
+  - **`include_role`**: This also allows you to include a role at a specific point and lets you conditionally control when that role is executed based on runtime conditions.
 
 
+```yaml
+- hosts: all
+  tasks:
+    - name: First task in playbook
+      debug:
+        msg: "This runs first."
+
+    - name: Import a role at this point
+      ansible.builtin.import_role:
+        name: my_role
+
+    - name: Another task in playbook
+      debug:
+        msg: "This runs after the role."
+
+    - name: Conditionally include a role
+      ansible.builtin.include_role:
+        name: another_role
+      when: some_condition is true
+```
+
+In the example above:
+1. The first debug task runs.
+2. The tasks from `my_role` are executed next.
+3. The second debug task runs after the role.
+4. If `some_condition` is true, `another_role` is included and executed.
+
+###### **TASK import/includes:**
+**`include_tasks`**:
+- **Definition**: This directive allows you to include a task file at runtime. The included tasks are executed when the playbook reaches the `include_tasks` statement.
+- **Usage**: It's useful for conditional execution or when you want to loop through tasks.
+- **Example**:
+  ```yaml
+  - hosts: all
+    tasks:
+      - name: Include tasks dynamically
+        ansible.builtin.include_tasks: tasks/my_tasks.yml
+        when: some_condition is true
+  ```
+
+**`import_tasks`**:
+- **Definition**: This directive statically imports a task file at parse time, meaning the tasks are available from the start of the playbook.
+- **Usage**: Use this when you want to ensure that the tasks are always included, regardless of conditions.
+- **Example**:
+  ```yaml
+  - hosts: all
+    tasks:
+      - name: Import tasks statically
+        ansible.builtin.import_tasks: tasks/my_tasks.yml
+  ```
 
 
+You can organize your tasks in separate YAML files to improve readability and maintainability. using structures akin to:
+
+```
+playbook.yml
+tasks/
+  my_tasks.yml
+  other_tasks.yml
+```
+
+example:
+```yaml
+- hosts: all
+  tasks:
+    - name: Import a set of static tasks
+      import_tasks: tasks/my_static_tasks.yml
+
+    - name: Include a set of tasks conditionally
+      include_tasks: tasks/my_conditional_tasks.yml
+      when: some_condition is true
+
+    #optionally you can choose to not name them e.g.
+	- import_tasks: tasks/my_static_tasks.yml
+    - include_tasks: tasks/my_conditional_tasks.yml
+```
+
+#fleshout_ALL_INCLude/IMPort
 
 ---
 
@@ -356,7 +441,7 @@ We call roles by adding it to the top level of the ansible play, roles will be e
 
 ---
 
-# **Helpful info/Examples:**
+# **Play setup / specifications:**
 
 #### **Basic setup for plays**:
 ```
@@ -403,9 +488,10 @@ If you don't want any facts gathered for a particular play you can specify this 
 ---
 
 # **commonly used modules:**
-#### ansible.builtin.shell
+#### - ansible.builtin.shell
 **A bug in some ansible versions doesn't allow you to use the full name "ansible.builtin.shell:", If it doesn't work just use "shell:"**
  This module is used to execute shell commands on target Linux hosts. 
+ **docs**: [ansible.builtin.shell module – Execute shell commands on targets — Ansible Community Documentation](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/shell_module.html)
 1. **`cmd: >` (folded style):**
 
    When you use `>`, it is called the "folded style" or "block scalar" style. In this style, newlines in the command are folded into spaces, and leading whitespaces are removed. This is useful when you have a long command that you want to write in a more readable way without including actual newline characters in the command. It's particularly handy for creating cleaner YAML syntax.
@@ -447,8 +533,8 @@ conversely, you don't have to use either of these and can just do:
    ```
 
 
-#### ansible.windows.win.shell
- This module is used to execute shell commands on target windows hosts. 
+#### - ansible.windows.win.shell
+ This module is used to execute shell commands on target windows hosts.  same core syntax (regarding command style |, <) as above.
    ```yaml
   tasks:
     - name: test
@@ -457,7 +543,21 @@ conversely, you don't have to use either of these and can just do:
       args:
         executable: cmd
    ```
-   This will display "hello" and use the command prompt as the shell to execute in, you can use PowerShell by changing the executable argument to `executable: powershelle.exe / powershell.
+This will display "hello" and use the command prompt as the shell to execute in, you can use PowerShell by changing the executable argument to `executable: powershelle.exe / powershell.
+**docs**: [ansible.windows.win_shell module – Execute shell commands on target hosts — Ansible Community Documentation](https://docs.ansible.com/ansible/latest/collections/ansible/windows/win_shell_module.html)
 
-
+#### - ansible.builtin.debug
+ This module is used for general debug prints:
+   ```yaml
+  tasks:
+  
+    - name: test
+      ansible.builtin.debug:
+         msg: "{{ someTestVar }} <- this is the var"
+    ```
+This will display the value of some variable with "<- this is the var" after.
+ **docs**: [ansible.builtin.debug module – Print statements during execution — Ansible Community Documentation](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/debug_module.html)
+ 
+ 
+ 
 #meta end_play & end_host
