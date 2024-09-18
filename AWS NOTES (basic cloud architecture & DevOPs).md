@@ -30,7 +30,7 @@ to use arm arch in ec2 you must choose gravitron based instance types (t4g...)
 
 ---
 
-# AWS VPCs, terminology, an overview, and how to create
+# AWS VPCs, terminology + overview
 **What it is:**  
 VPCs (Virtual Private Clouds) are virtual networks within your cloud environment, logically isolated from other VPCs, but can be connected to create a larger, interconnected architecture.
 
@@ -67,23 +67,24 @@ Many AWS resources, such as EC2 instances and RDS databases, must be deployed wi
 
 
 ###### **Options for connecting to VPCs:**
-There are a few ways we can configure our VPC for remote access, the method you use is highly dependent on your requirements/VPC architecture.
+There are a few ways we can configure our VPC for remote access to our private resources, the method you use is highly dependent on your requirements/VPC architecture.
 
 1. **Jump Host (Bastion Host):**  
-	A jump host, also known as a bastion host, is a server in a public subnet that is used to provide access to resources located in private subnets. It serves as a controlled access point and can be configured with strict security policies. This setup protects your infrastructure by minimizing the exposure of internal systems, while supporting various network topologies. SSH or RDP are common ways used to connect to a bastion host.
+	A jump host, also known as a bastion host, is a server in a public subnet that is used to provide access to resources located in private subnets. It serves as a controlled access point and can be configured with strict security policies. This setup protects your infrastructure by minimizing the exposure of internal systems, while supporting various design topologies. SSH or RDP are common ways used to connect to a bastion host.
     
 2. **VPN (Virtual Private Network):**  
 	You can establish a VPN connection to securely connect on-premises networks or individual users to the resources in your VPC. Options include AWS Site-to-Site VPN for linking entire networks or AWS Client VPN for individual users accessing the VPC from remote locations. This method encrypts traffic and allows you to extend your private network into the cloud.
     
 3. **Direct Connect:**  
-    AWS Direct Connect provides a dedicated network connection between your on-premises infrastructure and AWS. It can be used to reduce latency and provide a consistent network experience compared to internet-based connections. Direct Connect is ideal for workloads that require a high level of bandwidth or low-latency access to VPC resources.
+	AWS Direct Connect provides a dedicated network connection between your on-premises infrastructure and AWS. It can be used to reduce latency and provide a consistent network experience compared to internet-based connections. Direct Connect is ideal for workloads that require a high level of bandwidth or low-latency access to VPC resources.
     
 4. **Transit Gateway:**  
 	AWS Transit Gateway is a service that simplifies network management by acting as a central hub for interconnecting multiple VPCs, on-premises networks, or VPN connections. It can scale to thousands of VPCs and works well in large, complex architectures requiring centralized management.
 	
-1. **Public Subnet with Security Groups/NACLs:**  
+6. **SSH (Public Subnet with Security Groups/NACLs):**  
     Resources in public subnets can be accessed directly over the internet by using public IP addresses. Security groups and Network ACLs (NACLs) must be configured to control traffic flow, ensuring only authorized IPs or ranges have access.
-
+6. **AWS instance connect console:**  
+	AWS provides a dashboard console for access to compute instances [Connect using EC2 Instance Connect - Amazon Elastic Compute Cloud](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-connect-methods.html#:~:text=To%20connect%20to%20your%20instance%20using%20the%20Amazon,EC2%20Instance%20Connect.%20For%20Username%2C%20verify%20the%20username.)
 
 
 ---

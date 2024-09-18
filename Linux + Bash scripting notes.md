@@ -57,7 +57,7 @@ add eval command (runs something as if it were a command typed in)
 
 
 #### **Subshell execution / variable expansion**
-"" v ''
+"" v ' '
 $()
 
 
