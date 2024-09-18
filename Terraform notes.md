@@ -2,77 +2,35 @@
 
 
 ---
-
 # **What it is/why we use it:**
 Terraform is a powerful infrastructure as code (IaC) tool that enables users to define and provision infrastructure resources across various cloud providers. It simplifies the process of managing infrastructure by allowing you to express your desired state in a declarative manner. With Terraform, you can easily create, modify, and destroy infrastructure resources by writing code, providing a consistent and reproducible way to manage your infrastructure. 
 
-One of the best use cases for Terraform is infrastructure provisioning and management in a cloud environment. Whether you are working with AWS, Azure, GCP, or other cloud providers, Terraform allows you to define your infrastructure requirements in code, making it easy to spin up and tear down resources as needed. This makes it ideal for automating the deployment of complex architectures, including virtual machines, load balancers, databases, and networks. 
+One of the best use cases for Terraform is infrastructure provisioning and management in a cloud/multi-cloud environment. Whether you are working with AWS, Azure, GCP, or other cloud providers, Terraform allows you to define your infrastructure requirements in code, making it easy to spin up and tear down resources as needed. This makes it ideal for automating the deployment of complex architectures, including virtual machines, load balancers, databases, and networks. 
 
 Another key use case for Terraform is that Terraform can be used to manage local VMs like Hyper-V and vSphere. Terraform provides plugins called "providers" that allow you to interact with different infrastructure platforms and services, including local infrastructure. For example, the Terraform vSphere provider allows you to manage vSphere resources, such as VMs, datacenters, and networks. Similarly, the Terraform Hyper-V provider allows you to manage Hyper-V virtual machines and other resources. By using Terraform to manage your local VMs, you can achieve the same benefits as managing cloud infrastructure with Terraform, such as version control, collaboration, and reproducibility.
 
-### Declarative Configuration
+- **Declarative Configuration**-
 Terraform uses a declarative approach, where you define the desired state of your infrastructure in configuration files, rather than writing imperative scripts. This means you specify *what* you want, and Terraform figures out *how* to make it happen.
 
-### Infrastructure as Code (IaC)
+- **Infrastructure as Code (IaC)**-
 Terraform enables you to manage your infrastructure in a code-like manner. This allows for version control, collaboration, and reproducibility of your infrastructure. Infrastructure changes become code changes, making it easier to track and manage.
 
-### Resource Graph
+- **Resource Graph**-
 Terraform creates a dependency graph of the resources you define, ensuring that resources are created, updated, or destroyed in the correct order. This ensures consistency and avoids resource conflicts.
 
-### State Management
+- **State Management**-
 Terraform maintains a state file that records the current state of your infrastructure. This state file is used to track changes and plan updates or modifications to your infrastructure. Proper state management is crucial for Terraform's operation.
 
 
----
-
-# **Components of Terraform--**
-### 1. Providers
-Providers are responsible for managing and interacting with specific infrastructure or service providers such as AWS, Azure, Google Cloud, and more. Each provider has its own set of resources and data sources that you can use in your Terraform configurations.
-### 2. Resources
-Resources are the fundamental building blocks of your infrastructure. They represent the various resources you want to provision, such as virtual machines, networks, databases, and more. Resources are defined within provider blocks.
-### 3. Variables
-Variables are used to parameterize your Terraform configurations. They allow you to pass values into your configuration files, making it easier to reuse and customize your infrastructure definitions.
-### 4. Outputs
-Outputs allow you to extract and display specific values from your infrastructure after it's been provisioned. This is useful for retrieving information like IP addresses or DNS names of resources you've created.
-### 5. Modules
-Modules are reusable components of Terraform configurations. They enable you to encapsulate and abstract portions of your infrastructure code, making it easier to manage and share configurations across projects.
-### 6. State
-Terraform's state file records the current state of your infrastructure. It's essential for Terraform to track the state of resources, detect changes, and plan updates accurately. State can be stored locally or remotely, depending on your configuration.
 
 
 ---
-
-# **Installing Terraform--**
-To get started with Terraform, you need to install it on your local machine. Here's how (this covers downloading from .zip, there are also package based installation instructions on the terraform website)
-#### 1. Download Terraform:
-Visit the official Terraform website (https://www.terraform.io/downloads.html) and download the appropriate binary for your operating system (e.g., Windows, macOS, Linux).
-#### 2. Install Terraform:
-#### For Windows:
-1. Download the zip and then extract the downloaded ZIP archive to a directory of your choice.
-2. Add the directory containing the Terraform binary to your system's PATH environment variable.
-#### For Linux:
-1. Download the ZIP for the most recent version, you can use this command just replace the version with the most recent ver: 
-``` shell
-wget https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
-```
-2. Unzip the file and then move the Terraform binary to a directory included in your PATH. You can do this by running a command like `unzip terraform_1.6.0_linux_amd64.zip && sudo mv terraform /usr/local/bin/` on Linux.
-#### 3. Verify the Installation:
-Open your terminal or command prompt and run:
-
-```shell
-terraform --version
-```
-
-You should see the installed Terraform version displayed. This confirms that Terraform is installed and ready to use.
-
----
-
 # **Core terraform terminology**
 
 
 1.  **Provider**: a provider in terraform is a plugin that defines/manages resources for a specific infrastructure platform (e.g. AWS, Azure, VMware, etc.). 
 
-2. **Resource:** A resource is a infrastructure component that you specify to create/manage/change via Terraform (e.g. compute instances, databases, cloud networks, etc.).
+2. **Resource:** A resource is a provider  component that you specify to create/manage/change infrastructure within the scope of the provider via Terraform (e.g. compute instances, databases, cloud networks, etc.).
 
 3. **HCL:** stands for Hashicorp Configuration Language
  
@@ -82,28 +40,55 @@ You should see the installed Terraform version displayed. This confirms that Ter
 
 6. **State file:** This file is created by TF and keeps track of the current state of your infrastructure. This file helps Terraform/you understand what resources have been created + changes that have occurred/need to occur.
 
-7. **Plan:** The `Terraform Plan` command generates a plan + allows you to preview infrastructure changes that will be applied. On the backend, once you run this command, TF will analyze configuration specifications and compare them with the current state, it will then generate output that details actions that will be taken if you apply the changes.
+7. **Plan:** The `Terraform Plan` command/action generates a plan + allows you to preview infrastructure changes that will be applied. On the backend, once you run this command, TF will analyze configuration specifications and compare them with the current state, it will then generate output that details actions that will be taken if you apply the changes.
 
-8. **Apply:** The `terraform apply` command applies changes specified in the created plan. It will create/update/delete resources depending on your configurations.
+8. **Apply:** The `terraform apply` command/action applies changes specified in the created plan. It will create/update/delete resources depending on your configurations.
 
 9. **Workspaces:** TF workspaces are used to manage multiple environments (Dev, testing, staging, production) via separate configs/state files. These are essential for keeping your environment infrastructure files organized.
 
 10. **Remote backend storage:** Some form of this term is often used to describe a state file storage location that is not local, can be object storage server, cloud storage, HashiCorp TF cloud, etc.
+
+11. **Variables:** Variables are used to parameterize your Terraform configurations. They allow you to pass values into your configuration files, making it easier to reuse and customize your infrastructure definitions.
    
    
 
 
+---
+
+# **Installing Terraform--**
+To get started with Terraform, you need to install it on your local machine. Here's how (this covers downloading from .zip, there are also package based installation instructions on the terraform website)
+#### 1. Download Terraform:
+Visit the official Terraform website (https://www.terraform.io/downloads.html) and download the appropriate binary for your operating system (e.g., Windows, macOS, Linux).
+#### 2. Install Terraform:
+##### For Windows:
+1. Download the zip and then extract the downloaded ZIP archive to a directory of your choice.
+2. Add the directory containing the Terraform binary to your system's PATH environment variable.
+##### For Linux:
+1. Download the ZIP for the most recent version, you can use this command just replace the version with the most recent ver: 
+``` shell
+curl https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip -o /tmp/terraform.zip
+```
+2. Unzip the file and then move the Terraform binary to a directory included in your PATH. You can do this by running a command like `cd /tmp && unzip terraform.zip && sudo mv terraform /usr/local/bin/` on Linux.
+#### 3. Verify the Installation:
+Open your terminal or command prompt and run:
+
+```shell
+terraform --version
+```
+
+You should see the installed Terraform version displayed. This confirms that Terraform is installed and ready to use.
 
 
 
 
 ---
-
-# **Structuring Terraform Configuration Files For Your Project**
-Organizing your Terraform configuration files effectively is essential for maintaining readability and manageability. Here's a common structure for a Terraform project (keep in mind  that terraform projects are directory based, each directory with a main.tf is a new terraform project, when you run the init terraform will look in the directory you are in for all the necessary files):
+# **Terraform project structure**
+Here's a common structure for a Terraform project (keep in mind  that terraform projects are directory based, each directory with a main.tf is a new terraform project, when you run the init terraform will look in the directory you are in for all the necessary files):
 
 ```
 my-terraform-project/
+├── .terraform/terraform-provider...  # generated by terraform init
+├──.terraform.lock.hcl  # terraform lock file, generated by terraform init
 ├── main.tf               # Main configuration file
 ├── variables.tf          # Variable definitions
 ├── outputs.tf            # Output definitions
@@ -124,6 +109,10 @@ my-terraform-project/
 
 - **main.tf**: The primary configuration file where you define your infrastructure resources and their relationships.
 
+- **.terraform folder / .terraform.lock.hcl**: both are auto-generated upon `terraform init`. 
+	The *.terraform folder* contains a standard license.txt and is where Terraform caches provider plugins & records workspace information. 
+	The *lock.hcl* file pins down the exact versions of the providers being used, this ensures that Terraform knows which dependency versions are compatible with your current setup and helps prevent issues that could arise from updates to those providers.
+
 - **variables.tf**: This file defines input variables used in your configuration. Variables make your code more flexible and customizable.
 
 - **outputs.tf**: Here, you define output values that you want to extract from your infrastructure after provisioning.
@@ -134,20 +123,116 @@ my-terraform-project/
 
 - **providers.tf**: Configuration file for specifying provider credentials and settings.
 
-- **modules/**: A directory for organizing reusable modules, which help keep your code DRY  and promote code reuse.
+- **modules/**: A directory for organizing reusable modules, which help keep your code DRY and promote code reuse.
+
+
+
 
 
 ---
+# **Terraform commands**
+Here are some common terraform commands that you will use to perform operations in terraform:
 
+
+1. **terraform init**:
+Initializes a new or existing Terraform configuration by downloading required modules, plugins, and setting up the working directory.
+
+2. **terraform plan**:
+Generates and shows the execution plan for the infrastructure. This command doesn't make changes but previews what will be created, updated, or destroyed.
+
+3. **terraform apply**:
+Applies the changes defined in the Terraform configuration to provision the infrastructure. It will ask for confirmation unless you use the `-auto-approve` flag.
+
+4. **terraform destroy**:
+Destroys all the resources created by your Terraform configuration. Like `apply`, it will ask for confirmation unless you use the `-auto-approve` flag.
+
+5. **terraform show**:
+Displays information about the Terraform state or the plan file.
+
+6. **terraform output**:
+Retrieves the output values defined in your Terraform configuration. You can use this to get specific values like IP addresses, instance IDs, etc.
+
+7. **terraform validate**:
+Validates the syntax and configuration of your Terraform files. This command checks whether the configuration is syntactically valid.
+
+8. **terraform fmt**:
+Formats your Terraform configuration files in a standard format for readability and consistency.
+
+9. **terraform import**:
+Imports an existing resource into Terraform's state. This command allows you to bring resources not managed by Terraform under its management.
+```bash
+terraform import aws_instance.my_instance i-1234567890abcdef0
+```
+
+10. **terraform state**:
+Manages and inspects the state of your Terraform-managed infrastructure. Common subcommands include `list`, `show`, `mv`, and `rm`.
+```bash
+# View resources in the state
+terraform state list
+
+# Show detailed information for a resource
+terraform state show aws_instance.my_instance
+```
+
+11. **terraform taint**:
+Marks a resource for destruction and recreation on the next `terraform apply`. Useful if you want to force a resource to be replaced.
+```bash
+terraform taint aws_instance.my_instance
+```
+
+12. **terraform untaint**:
+Removes the tainted state from a resource, meaning it will not be destroyed and recreated.
+```bash
+terraform untaint aws_instance.my_instance
+```
+
+13. **terraform refresh**:
+Updates the Terraform state file with the current real-world status of your infrastructure without making any changes.
+
+14. **terraform workspace**:
+Manages multiple workspaces for managing different environments or deployments with the same Terraform configuration.
+```bash
+# Create a new workspace
+terraform workspace new dev
+
+# Switch to an existing workspace
+terraform workspace select dev
+
+# List all workspaces
+terraform workspace list
+```
+
+15. **terraform graph**:
+Generates a visual representation of the dependency graph of Terraform resources.
+
+16. **terraform console**:
+Launches an interactive console for evaluating expressions and querying Terraform resources.
+
+17. **terraform state mv**:
+Moves resources from one state to another, useful for renaming or reorganizing resources.
+```bash
+terraform state mv aws_instance.old_name aws_instance.new_name
+```
+
+18. **terraform apply -target=**:
+Apply changes only to a specific resource or module.
+```bash
+terraform apply -target=aws_instance.my_instance
+```
+
+
+
+
+
+
+---
 # **Sample Terraform Configuration**
-Here's a basic example of a Terraform configuration file that provisions an AWS EC2 instance:
+Here's a basic example of a Terraform main.tf configuration file that provisions an AWS EC2 instance:
 
-```hcl
+```HCL
 # Specify the AWS provider and credentials
 provider "aws" {
   region     = "us-east-1"
-  access_key = "YOUR_ACCESS_KEY"
-  secret_key = "YOUR_SECRET_KEY"
 }
 
 # Define an EC2 instance resource
@@ -163,21 +248,43 @@ output "instance_public_ip" {
 ```
 In this example:
 
-- We specify the AWS provider and credentials.
+- We specify the AWS provider
 - We define an EC2 instance resource with its configuration.
 - We create an output to display the public IP address of the instance.
 
-To use this configuration, follow these steps:
-
+To play around using this configuration, follow these steps:
 
 1. Install Terraform on your system.
-2. Create a `main.tf` file with the above configuration.
-3. Initialize the working directory using `terraform init`.
-4. Review the planned changes using `terraform plan`.
-5. Apply the configuration to create the resources with `terraform apply`.
-6. Retrieve the outputs using `terraform output`.
+2. Install the aws cli and configure it with your access keys
+3. Create a `main.tf` file with the above configuration.
+4. Initialize the working directory using `terraform init`.
+5. Review the planned changes using `terraform plan`.
+6. Apply the configuration to create the resources with `terraform apply`.
+7. Retrieve the outputs using `terraform output`.
 
 Terraform will handle the provisioning and management of the EC2 instance based on your configuration.
+
+
+
+
+---
+
+
+# **Terraform variables
+
+...
+
+
+
+
+
+---
+
+
+# **Terraform logic**
+...
+
+
 
 
 ---
@@ -205,6 +312,10 @@ Replace  `"path/to/local/provider/binary"`  with the actual path to the provider
 4. Initialize Terraform: Run the  `terraform init`  command in your project directory to initialize Terraform. Terraform will detect the locally configured provider and use it for subsequent operations.
 
 By following these steps, you can work with Terraform and its providers in an airgapped environment without relying on internet connectivity. Ensure that you have the correct provider binary version compatible with your Terraform configuration and that it is obtained from a trusted source.
+
+
+
+
 
 
 ---

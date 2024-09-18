@@ -2,14 +2,14 @@
 study set: [K8s Flashcards | Quizlet](https://quizlet.com/931874317/k8s-flash-cards/)
 Kubernetes, commonly referred to as K8s, is an open-source container orchestration platform designed to automate the deployment, scaling, and management of containerized applications. Kubernetes enables organizations to manage containerized workloads across a cluster of machines, providing flexibility, scalability, and resilience.
 
-#goThrough ayush kumar on linkedin to distill hsi learning materials
 #add info on cgroups drivers / container runtimes [Configuring a cgroup driver | Kubernetes](https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/)  /   [Container Runtimes | Kubernetes](https://kubernetes.io/docs/setup/production-environment/container-runtimes/)
 
 
 
+
+
+
 ----
-
-
 # **Installing Kubernetes (bare-metal, kubeadm) (for use with docker)**
 
 #### Installation instructions:
@@ -31,25 +31,34 @@ sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificat
 you can turn swap back on with:   `sudo swapon -a` , you can remove the hold from the packages with:   `sudo apt-mark unhold kubelet kubeadm kubectl`
 
 
----
-### Common errors
 
-**!! Common error - *container runtime is not running*:**  sometimes you may get a "container runtime is not running" error when starting/joing a kubernetes deployment, to remedy this you can run this command:  `rm /etc/containerd/config.toml && systemctl restart containerd`   After running the command retry your init command 
 
-**!! LESS COMMON ERROR - *The connection to the server x.x.x.:6443 was refused - did you specify the right host or port?* Even after making directory / exporting admin kube var.**: not sure why this occurs, some say its a version specific bug. on master node run:
-1. sudo -i 
-2. swapoff -a 
-3. systemctl restart kubelet
-4. exit
-5. strace -eopenat kubectl version
-Then use try again, you can use strace without the flag to monitor system calls 
 
-or if you can reset the cluster and re-init run:
-**sudo kubeadm init ; sudo kubeadm init phase bootstrap-token**
+
 
 ---
+# **Common errors**
+-  !! Common error - *container runtime is not running*:  
+	sometimes you may get a "container runtime is not running" error when starting/joing a kubernetes deployment, to remedy this you can run this command:  `rm /etc/containerd/config.toml && systemctl restart containerd`   After running the command retry your init command 
+
+- !! LESS COMMON ERROR - *The connection to the server x.x.x.:6443 was refused - did you specify the right host or port?* 
+	Even after making directory / exporting admin kube var.: not sure why this occurs, some say its a version specific bug. on master node run:
+	1. `sudo -i `
+	2. `swapoff -a `
+	3. `systemctl restart kubelet`
+	4. `exit`
+	5. `strace -eopenat kubectl version`
+	Then use try again, you can use strace without the flag to monitor system calls.
+	or if you can reset the cluster and re-init run:
+	`sudo kubeadm init ; sudo kubeadm init phase bootstrap-token`
+
+- !! LESS COMMON ERROR - *ERROR Port-6443: Port 6443 is in use* **
+	 To resolve run `sudo netstat -tulpn | grep 6443` and then run `kill -9 [pid]` replacing pid with the process ID of whatever is using port 6443 (usually kube-apiserver )
 
 
+
+
+---
 # **Key Kubernetes terms**
 
 1. **Pod**: The smallest unit of deployment in Kubernetes, representing one or more containers that are scheduled together on the same host. 
@@ -94,8 +103,6 @@ or if you can reset the cluster and re-init run:
 
 
 ----
-
-
 # **Kubernetes Architecture**
 
 Kubernetes architecture consists of several components working together to manage containers and orchestrate application deployment.
@@ -124,9 +131,12 @@ In summary, kubeadm is used for cluster bootstrap and initialization, kubectl is
 
 #flesh_out--Most control plane components run as pods on the master node. To view control plane components run `kubectl get pods -n kube-system` on the control plane, you can use `describe resourcename` to get logs.
 
+
+
+
+
+
 ----
-
-
 #  **Kubernetes essential commands**
 
 **Creation/teardown commands:**
@@ -160,13 +170,13 @@ kubectl delete node [node-name]
 kubeadm reset # should only be run after all nodes are deleted to ensure a clean cleanup
 ```
 
-6. **Apply deployment / delete deployment**
-```
-kubectl apply -f [deployment.yaml]
+6. **Apply manifest .yml
+```yaml
+kubectl apply -f [mainfest name.yaml]
 
-kubectl delete deployment [deployment name] 
-OR you can do it in [object]/[name] format
-kubectl delete deployment/someDeploymentName
+kubectl delete [object] [name] (e.g deployment test_deployment)
+ # OR you can do it in [object]/[name] format
+kubectl delete deployment/test_deployment
 ```
 
 **Cluster management commands:**
@@ -192,12 +202,12 @@ kubectl get pods -o wide #verbose get, use this
 # describe gets details about a specific k8s deployment object
 kubectl describe object/name
 #object can be pod/deployment/service...
-
 ```
 
 5. **Describe active deployments**
 ```
 kubectl get deployments
+kubectl get deployments -o wide # more descriptive
 ```
 
 6. **Enter a Kubernetes pod**
@@ -229,10 +239,13 @@ kubectl run [container/pod name] --image [something:something] -o yaml --dry-run
 #if we omit the `-o --dry-run... >` section we can run a single pod (Container), to connect we can add -it, similar to docker run (-it cant be used in conjunction with --dry-run=client -o yaml, it will immediately take you into the container instead of simply generating the pod manifest, to add -it functionality to a pod created via a manifest you must add stdin: true & tty: true to the spec section)
 kubectl run -it [container/pod name] --image [something:something]
 
+#---------------------------------------------------------------
 #some other flags we can add to our pod/container (can be used with --dry-run/-o):
---image-pull-policy IfNotPresent, etc. # > specifies a pull polic the image (e.g. if not present only pulls the image if it cant be found locally)
+#---**NOTE: the supplied value after the flag is always capitalized---
 
---restart Always, never, etc. # > specifies a restart policy for the pod
+--image-pull-policy IfNotPresent, Always, etc. # > specifies a pull policy the image (e.g. if not present only pulls the image if it cant be found locally)
+
+--restart Always, Never, etc. # > specifies a restart policy for the pod
 
 --port 80 # > specifies a container port to expose
 
@@ -288,23 +301,19 @@ kubectl port-forward [object_type]/[name] HostPort:ContainerPort
 
 13. **generate a service manifest**
 ```yaml
-
 kubectl create service [service_type] [name] --tcp=80:80 -o yaml --dry-run=client
-
 ```
 
-14. **generate a service manifest from a deployment/pod**
+14. **kubectl expose (generate a service manifest from a deployment/pod)**
 ```yaml
-
 kubectl expose [pod or deployment]/[name] --port 80 --target-port 80 --type [type e.g. loadbalancer] -o yaml --dry-run=client
-
 ```
 
 15. **get logs (output stream)**
 ```yaml
-# you can get logs from services/pods/deployments, for most deployments this command will pull the logs from a single pod within the deployment
+# you can get logs from services/pods/deployments, for most deployments this command will pull the logs from a single container within a pod
 
-kubectl logs [object type: deployment,pod,service]/[name]
+kubectl logs [object type: deployment,pod]/[name]
 
 # the kubectl logs command defaults to pods so if you specify:
 kubectl logs [name]
@@ -317,10 +326,35 @@ kubectl logs pods/somepod -c containerName
 
 ```
 
+16. **get events *
+```yaml
+# you can use this command  to get cluster events, events are system occurances like failures, successes, creations, deletions, etc.
+
+ # List recent events in the default namespace
+  kubectl events
+  
+  # List recent events in all namespaces THIS IS PARTICULARLY USEFUL
+  kubectl events --all-namespaces
+  
+  # List recent events for the specified pod, then wait for more events and list them as they arrive
+  kubectl events --for pod/web-pod-13je7 --watch
+
+  # List recent only events of type 'Warning' or 'Normal'
+  kubectl events --types=Warning,Normal
+Options
+
+
+
+```
+
+
+
+
+
+
 
 
 ----
-
 # **Understanding Kubernetes Manifests (part 1) (pods/deployments) **
 
 In Kubernetes the state of resources (the services, CNIs, pods, deployments, configurations, etc.) are defined using YAML files called manifests. We can create most of these resource objects imperatively (manually, via CLI), but using a declarative (representation of state) approach allows   for reproducibility, ease of modification/collaboration, and for versioning purposes. 
@@ -352,6 +386,7 @@ status: {}
 - (2) **now run this command to generate a deployment manifest:** `kubectl create deployment MyDeployment --image ubuntu:latest --image mysql:latest -o yaml --dry-run=client > mydep.yaml`
 ***It will generate mydep.yaml:***
 ```yaml
+#-----------------------top level section -------------------
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -359,6 +394,8 @@ metadata:
   labels:
     app: MyDeployment
   name: MyDeployment
+  
+  #---------------spec 1 section (deployment configs)-------------------
 spec:
   replicas: 1
   selector:
@@ -370,6 +407,8 @@ spec:
       creationTimestamp: null
       labels:
         app: MyDeployment
+
+  #---------------spec 2 section (pod configs)-------------------
     spec:
       containers:
       - image: ubuntu:latest
@@ -428,7 +467,7 @@ apiVersion: apps/v1
 kind: Deployment
 ...
 
-spec:    # <-- We are targeting this section
+spec:    # <-- We are targeting this section from spec to spec
   replicas: 1
   selector:
     matchLabels:
@@ -439,15 +478,8 @@ spec:    # <-- We are targeting this section
       creationTimestamp: null
       labels:
         app: MyDeployment
-    spec:
-      containers:
-      - image: ubuntu:latest
-        name: ubuntu
-        resources: {}
-      - image: mysql:latest
-        name: mysql
-        resources: {}
-status: {}
+        
+    spec:...
 ```
 
 The first thing you'll notice is that there are two specification (`spec`) sections, and a template section. one spec section is for the deployment configuration and one is for the pod configuration.
@@ -497,11 +529,13 @@ kind: pod or deployment
 
 
 
-.... add stdin: true / tty:true / -it / exec 
+
+
+
+
 
 
 ----
-
 # **Understanding Kubernetes Manifests (part 2) (services) **
 
 
@@ -514,8 +548,17 @@ kind: pod or deployment
 
 
 ---
-
 # **contexts/namespaces
+
+information on top level cluster namespaces here like kube-system, default, add cni namespace info...
+
+
+
+
+
+
+
+
 
 ---
 
@@ -712,7 +755,7 @@ dive into flannel calico and weave / --pod-networ-cidr stuff like that
 3. **Persistent Volumes:** Storage resources provisioned independently of pod lifecycles, allowing data to persist across pod restarts.
 
 4. **StatefulSets:** Manages the deployment and scaling of stateful applications, such as databases, with stable network identifiers and persistent storage.
-
+https://k21academy.com/docker-kubernetes/amazon-eks-kubernetes-on-aws/#b
 ----
 
 #### Additional Resources
@@ -724,6 +767,9 @@ dive into flannel calico and weave / --pod-networ-cidr stuff like that
   
   
   
+
+
+
 
 
 ---

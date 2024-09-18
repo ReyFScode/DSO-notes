@@ -1,5 +1,9 @@
 
 
+#add_section_on _removal_of clickops
+
+# ****What is DevOps actually?
+
 add gitflow v trunk for dev strategies
 
 add multi v mono repo for repo strategies

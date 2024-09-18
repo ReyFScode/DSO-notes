@@ -8,6 +8,7 @@ All of these concepts will (99%) be the same on any Linux distro you use.
 #how to gather apt packs for offline (apt-rdepends pass to apt-get / .../cache/apt)
 
 #sourceVbash : [linux - What is the difference between executing a Bash script vs sourcing it? - Super User](https://superuser.com/questions/176783/what-is-the-difference-between-executing-a-bash-script-vs-sourcing-it)
+add eval command (runs something as if it were a command typed in)
 #### **Basic Commands / operators:**
 - `ls`: List directory contents, specify `-al` for a more detailed view.
 - `du -h`: Displays the disk usage of files and directories (in human readable format). Example: `du -h /path/to/directory` displays disk usage of a target directory  in human-readable format.
@@ -56,7 +57,7 @@ All of these concepts will (99%) be the same on any Linux distro you use.
 
 
 #### **Subshell execution / variable expansion**
-"" v ''
+"" v ' '
 $()
 
 
@@ -79,6 +80,11 @@ Sockets provide a more versatile form of IPC, allowing communication between unr
 
 ##### **processes and signals**
 A process is defined as a running instance of a program,  we can view processes by running the `ps` command with varying flags `ps -aux` is usually the standard (all processes with a high level of detail), but to get specific process we specify `ps -C [name e.g systemd] `. Signals are sent to processes to invoke an action, the commonly used ones are SIGKILL invoked with `kill -9 [pid]` which forcefully kills a process, or SIGINT invoked with ctrl+c which interrupts a program and requests a graceful termination.
+
+
+
+
+
 
 
 
@@ -182,7 +188,7 @@ Installed packages can be found in `/var/cache/apt/archives` APT packages come i
 	- **Ping**: Ping checks if a host is reachable by sending ICMP echo requests and measuring the time taken for a response.
 	- **Traceroute**: Traceroute traces the route packets take from the source to the destination, showing each hop and the time it takes to reach each node.
 	- **Ss**: lists/parses sockets on the host. [ss command in linux - GeeksforGeeks](https://www.geeksforgeeks.org/ss-command-in-linux/#)
-	- **Netstat**: Netstat displays network connections, routing tables, information on ports, and interface statistics, helping diagnose network issues and monitor network activity (e.g. `netstat -na` will display connected/listening ports). [Netstat command in Linux - GeeksforGeeks](https://www.geeksforgeeks.org/netstat-command-linux/)
+	- **Netstat**: Netstat displays network connections, routing tables, information on ports, and interface statistics, helping diagnose network issues and monitor network activity (e.g. `netstat -na` will display connected/listening ports, the most powerful netstat command in my opinion is: `netstat -tulpn` this displays used ports, states, PIDs, and names, this is very very useful). [Netstat command in Linux - GeeksforGeeks](https://www.geeksforgeeks.org/netstat-command-linux/)
 
 **Making temporary system networking configurations:**
 you can assign temporary static IP addresses to a network interface via `ifconfig` (if net-tools is installed) or via `ip a` examples:
