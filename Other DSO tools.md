@@ -209,7 +209,8 @@
      Once installed, you can define pipelines in the Spinnaker UI for automated deployments.
    - **DevOps Workflow Example**: 
      Spinnaker pipelines allow for canary releases and blue-green deployments. A typical pipeline might automatically trigger upon a successful Jenkins build and deploy to a staging environment.
-
+links:
+[OpsMx Tutorials - Learn Continuous Delivery with Spinnaker and Argo CD](https://www.opsmx.com/tutorials/)
 
 
 

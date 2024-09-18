@@ -1,6 +1,6 @@
 
 
-
+#add_section_on _removal_of clickops
 
 # ****What is DevOps actually?
 

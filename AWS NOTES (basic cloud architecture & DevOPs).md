@@ -1,14 +1,5 @@
 to use arm arch in ec2 you must choose gravitron based instance types (t4g...)
-
-
-
----
-
-
-# Key AWS terms
-
-
-
+[amazon web services - Cost of storing AMI - Stack Overflow](https://stackoverflow.com/questions/18650697/cost-of-storing-ami)
 
 ---
 
@@ -27,16 +18,10 @@ to use arm arch in ec2 you must choose gravitron based instance types (t4g...)
 
 
 
-
-
-
-]
-
-
 ---
 
 # Common AWS resources
-**What it is:** The AWS Command Line Interface (CLI) is a unified tool that provides a :**
+**W...
 
 
 
@@ -45,10 +30,59 @@ to use arm arch in ec2 you must choose gravitron based instance types (t4g...)
 
 ---
 
-# AWS VPCs, an overview and how to create
-**What it is:** The AWS Command Line Interface (CLI) is a unified tool that provides a command-line interface for managing your Amazon Web Services (AWS) resources. It enables you to interact with AWS services via scripts or commands from 
+# AWS VPCs, terminology, an overview, and how to create
+**What it is:**  
+VPCs (Virtual Private Clouds) are virtual networks within your cloud environment, logically isolated from other VPCs, but can be connected to create a larger, interconnected architecture.
+
+Many AWS resources, such as EC2 instances and RDS databases, must be deployed within a VPC. Many users are unaware that even if they don't explicitly configure a VPC, they are still launching resources in one. AWS accounts are pre-configured with a default VPC in each region, allowing you to launch resources immediately, even without custom VPC configuration. However, it is often recommended to create custom VPCs for organizational needs and enhanced security. Many organizations choose to delete the default VPC to ensure stricter security practices, although this is not always required.
+
+###### **Core VPC components/terms:**
+- - **Subnets:**  
+    Subnets are subdivisions of a VPC’s IP address range. They allow you to segment your network into smaller, manageable sections, such as public and private subnets. Public subnets are accessible from the internet, while private subnets are isolated from it. *Resources launched in a private subnet do not have a public IP address and cannot communicate with the internet directly. However, they CAN communicate with resources in other subnets within the same VPC* > This is how you can use a jump host to manage a private subnet.
+    
+- **Route Tables:**  
+	Route tables contain a set of rules (routes) that determine where network traffic is directed within your VPC. Each subnet in your VPC must be associated with a route table, and the route table controls the outbound traffic for the resources in the subnet.
+    
+- **Internet Gateway (IGW):**  
+	An internet gateway is a horizontally scaled, redundant, and highly available component that allows communication between your VPC and the internet. It enables resources in a VPC with public IP addresses to access the internet. It is essentially just a bridge to the internet and doesn't require an elastic IP (more on that later).
+    
+- **NAT Gateway/Instance:**  
+	Network Address Translation (NAT) allows instances in a private subnet to connect to the internet or other AWS services while preventing inbound traffic from the internet. A NAT Gateway is a managed AWS service, whereas a NAT instance is a self-managed EC2 instance performing NAT functions. To effectively function it requires an assigned Elastic IP.
+    
+- **Security Groups:**  
+	Security groups are virtual firewalls that control inbound and outbound traffic to resources in your VPC. You can specify which protocols, ports, and IP addresses are allowed to communicate with your resources. These operate at the resource level.
+    
+- **Network ACLs (NACLs):**  
+	Network ACLs are also technically firewalls that provide an additional layer of security, operating at the subnet level. They control inbound and outbound traffic at the subnet level and act as stateless firewalls, meaning they evaluate traffic both ways independently.
+    
+- **VPC Peering:**  
+	VPC peering allows you to connect one VPC to another privately, enabling resources in different VPCs to communicate with each other using private IP addresses.
+    
+- **VPC Endpoints:**  
+    VPC endpoints allow you to privately connect your VPC to supported AWS services without needing an internet gateway, NAT device, or VPN connection. Traffic to AWS services stays within the AWS network.
+    
+- **Elastic IP (EIP):**  
+    Elastic IP addresses are static IPv4 addresses that can be associated with AWS resources in your VPC, such as EC2 instances, to maintain a consistent IP address for external communication. 
+    Some notes on EIP assignment: for them to be useful, they need to be associated with resources that can access the internet, such as instances in a public subnet. A NAT Instance (if you're using an instance instead of the managed NAT Gateway service) requires an Elastic IP so that it can allow instances in the private subnet to access the internet indirectly. An Internet Gateway (IGW) is just a bridge that allows traffic between the internet and instances within your public subnets. It doesn’t require an Elastic IP itself, the instances behind it must have EIPs associated though.
 
 
+###### **Options for connecting to VPCs:**
+There are a few ways we can configure our VPC for remote access, the method you use is highly dependent on your requirements/VPC architecture.
+
+1. **Jump Host (Bastion Host):**  
+	A jump host, also known as a bastion host, is a server in a public subnet that is used to provide access to resources located in private subnets. It serves as a controlled access point and can be configured with strict security policies. This setup protects your infrastructure by minimizing the exposure of internal systems, while supporting various network topologies. SSH or RDP are common ways used to connect to a bastion host.
+    
+2. **VPN (Virtual Private Network):**  
+	You can establish a VPN connection to securely connect on-premises networks or individual users to the resources in your VPC. Options include AWS Site-to-Site VPN for linking entire networks or AWS Client VPN for individual users accessing the VPC from remote locations. This method encrypts traffic and allows you to extend your private network into the cloud.
+    
+3. **Direct Connect:**  
+    AWS Direct Connect provides a dedicated network connection between your on-premises infrastructure and AWS. It can be used to reduce latency and provide a consistent network experience compared to internet-based connections. Direct Connect is ideal for workloads that require a high level of bandwidth or low-latency access to VPC resources.
+    
+4. **Transit Gateway:**  
+	AWS Transit Gateway is a service that simplifies network management by acting as a central hub for interconnecting multiple VPCs, on-premises networks, or VPN connections. It can scale to thousands of VPCs and works well in large, complex architectures requiring centralized management.
+	
+1. **Public Subnet with Security Groups/NACLs:**  
+    Resources in public subnets can be accessed directly over the internet by using public IP addresses. Security groups and Network ACLs (NACLs) must be configured to control traffic flow, ensuring only authorized IPs or ranges have access.
 
 
 
