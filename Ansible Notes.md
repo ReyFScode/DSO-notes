@@ -284,10 +284,11 @@ tasks:
 
 
 ---
-# **Roles & Includes/Imports
+# **Roles & Task files & Includes/Imports
 #ADDrolesinfo [How to Use Ansible Roles to Abstract your Infrastructure Environment | DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-use-ansible-roles-to-abstract-your-infrastructure-environment)
 ##### Roles
-Ansible roles are a way we can organize playbooks and create reusable task-sets at the same time. Roles are essentially groups of tasks placed together. 
+Ansible roles are a way we can organize playbooks and create reusable task-sets at the same time. Roles are essentially groups of tasks placed together. Roles always run before tasks so they are often described before tasks in playbooks. 
+
 in our ansible directory (add how to customize location) we create a folder "roles", in this folder we create a folder (named whatever the role should be called e.g. some_role), and inside that a folder called tasks. so we have /etc/ansible/roles/some_role/tasks , inside the tasks folder we put a file called main.yml, we can input the tasks starting at space 0, this is useful because it allows you to not have to worry about spacing + allows for you to create reusable task modules.
 
 ```yaml
@@ -318,95 +319,63 @@ We call roles by adding it to the top level of the ansible play, roles will be e
  
 ```
 
-#### Task + Role Includes/imports:
-Another way to promote reusability & precisely control the task flow within your ansible playbooks, you can opt to include/import tasks and roles.
+you can opt to not put roles in the default roles (/etc/ansible/roles) location by simply specifying the path to the role folder like this:
+*note:* if you choose this you must still follow the hierarchy of RoleNameFolder/tasks/main.yml
+```
+- name: test_Play
+  hosts: localhost
+  connection: local
 
-###### **ROLE import/includes:**
-- **Roles with the `roles` Keyword**: When you use the `roles` keyword in a playbook, all tasks defined in those roles run before any tasks defined directly in the playbook. This is a structured way to ensure that certain roles execute first.
-
-- **Inserting Roles with `import_role` and `include_role`**:
-  - **`import_role`**: This allows you to import a role at a specific point in your tasks. The tasks from that role will run in the order you specify within the playbook.
-  - **`include_role`**: This also allows you to include a role at a specific point and lets you conditionally control when that role is executed based on runtime conditions.
-
-
-```yaml
-- hosts: all
-  tasks:
-    - name: First task in playbook
-      debug:
-        msg: "This runs first."
-
-    - name: Import a role at this point
-      ansible.builtin.import_role:
-        name: my_role
-
-    - name: Another task in playbook
-      debug:
-        msg: "This runs after the role."
-
-    - name: Conditionally include a role
-      ansible.builtin.include_role:
-        name: another_role
-      when: some_condition is true
+  roles:
+	  - /etc/customdir/some_role
 ```
 
-In the example above:
-1. The first debug task runs.
-2. The tasks from `my_role` are executed next.
-3. The second debug task runs after the role.
-4. If `some_condition` is true, `another_role` is included and executed.
 
-###### **TASK import/includes:**
-**`include_tasks`**:
-- **Definition**: This directive allows you to include a task file at runtime. The included tasks are executed when the playbook reaches the `include_tasks` statement.
-- **Usage**: It's useful for conditional execution or when you want to loop through tasks.
+##### **Task files**
+I'm not sure what the official name of this is so I just call them task files,  task files are also a way we can promote reusability within ansible, by defining tasks (the same way we do for roles) in separate .yaml files. unlike roles we don't need to structure them in a folder hierarchy and name them main.yml.
+```
+# file called sampletask.yml
+- name: task in playbook
+  debug:
+    msg: "Thing1"
+
+- name: Another task in playbook
+  debug:
+    msg: "Thing2"
+```
+we can then call these task files into the playbook using includes/imports, more on this below:
+
+
+#### **Task + Role Includes/imports:**
+Another way to promote reusability & precisely control the task flow within your ansible playbooks, you can opt to include/import tasks and roles. Including is usually the default since its more resilient and efficient, but you can choose whichever fits your needs:
+- **including** means that the tasks are loaded dynamically during execution, this means that they will have access to main playbook task defined variables and is overall more efficient. 
+- **Importing** means that the tasks are loaded statically when the playbooks is parsed, this means that they do not have access to main playbook task defined variables which can cause some tasks to fail.
+
+NOTE: since roles always run before tasks in the order they are called, including/importing a role into the main task list is especially useful since it means you can specify when the role will be run/conditional logic for running the role.
+###### **Example:**
+**`include_tasks/roles`**:
+This directive allows you to include a task file / role at runtime. The included resource tasks are executed when the playbook reaches the include statement.
+
 - **Example**:
   ```yaml
   - hosts: all
     tasks:
       - name: Include tasks dynamically
         ansible.builtin.include_tasks: tasks/my_tasks.yml
-        when: some_condition is true
-  ```
 
-**`import_tasks`**:
-- **Definition**: This directive statically imports a task file at parse time, meaning the tasks are available from the start of the playbook.
-- **Usage**: Use this when you want to ensure that the tasks are always included, regardless of conditions.
-- **Example**:
-  ```yaml
-  - hosts: all
-    tasks:
       - name: Import tasks statically
         ansible.builtin.import_tasks: tasks/my_tasks.yml
+
+      - name: Import a role at this point
+        ansible.builtin.import_role:
+          name: my_role
+
+      - name: include a role at this point
+        ansible.builtin.include_role:
+          name: my_role
   ```
 
 
-You can organize your tasks in separate YAML files to improve readability and maintainability. using structures akin to:
-
-```
-playbook.yml
-tasks/
-  my_tasks.yml
-  other_tasks.yml
-```
-
-example:
-```yaml
-- hosts: all
-  tasks:
-    - name: Import a set of static tasks
-      import_tasks: tasks/my_static_tasks.yml
-
-    - name: Include a set of tasks conditionally
-      include_tasks: tasks/my_conditional_tasks.yml
-      when: some_condition is true
-
-    #optionally you can choose to not name them e.g.
-	- import_tasks: tasks/my_static_tasks.yml
-    - include_tasks: tasks/my_conditional_tasks.yml
-```
-
-#fleshout_ALL_INCLude/IMPort
 
 ---
 
