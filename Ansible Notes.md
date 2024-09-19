@@ -285,11 +285,11 @@ tasks:
 
 ---
 # **Roles & Task files & Includes/Imports
-#ADDrolesinfo [How to Use Ansible Roles to Abstract your Infrastructure Environment | DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-use-ansible-roles-to-abstract-your-infrastructure-environment)
-##### Roles
+
+##### **Roles**
 Ansible roles are a way we can organize playbooks and create reusable task-sets at the same time. Roles are essentially groups of tasks placed together. Roles always run before tasks so they are often described before tasks in playbooks. 
 
-in our ansible directory (add how to customize location) we create a folder "roles", in this folder we create a folder (named whatever the role should be called e.g. some_role), and inside that a folder called tasks. so we have /etc/ansible/roles/some_role/tasks , inside the tasks folder we put a file called main.yml, we can input the tasks starting at space 0, this is useful because it allows you to not have to worry about spacing + allows for you to create reusable task modules.
+By default roles look in /etc/ansible/roles so in our ansible directory we create a folder "roles", in this folder we create a folder (named whatever the role should be called e.g. some_role), and inside that a folder called tasks. so we have /etc/ansible/roles/some_role/tasks , inside the tasks folder we put a file called main.yml, we can input the tasks starting at space 0, this is useful because it allows you to not have to worry about spacing + allows for you to create reusable task modules.
 
 ```yaml
 # /etc/ansible/some_Role/tasks/main.yml
