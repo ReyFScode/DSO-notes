@@ -311,7 +311,7 @@ output "variableDebug" { value="${var.testVar}" }
 
 When we declare variables within variable blocks we can do two primary operations on them:
 
-**> Overwrite values with the --var flag:** We can overwrite the value of our declared variables by using `--var name="value"` in the command line when we run terraform plan / terraform apply, variables must still be declared in a variable block, so if you have declared "somevar" with a default value of "foo" we can run `terraform plan --var somevar="bar"` to overwrite "foo" with "bar". `--var` is the most powerful setting tool for variable blocks, it doesn't matter if the value has a default or expects an input, --var will set its value.
+**> Overwrite values with the --var flag:** We can overwrite the value of our declared variables by using `--var name="value"` in the command line when we run terraform plan / terraform apply, variables must still be declared in a variable block, so if you have declared "somevar" with a default value of "foo" we can run `terraform plan --var somevar="bar"` to overwrite "foo" with "bar". **`--var` is the most powerful setting tool for variable blocks**, it doesn't matter if the value has a default, or is defined in a file, or expects an input... --var will set/overwrite its value.
 
 **> Input variables:** We can set variable blocks to take input at runtime if we don't specify a default value in the variable block, The user will instead be prompted with an input field + the variable description. This will be overridden if the user specifies the variable value with the --var flag at plan/apply.
 ```
@@ -353,15 +353,20 @@ variable "region" {
 }
 
 ```
-The variables.tf file is parsed first and establishes a list of variables, if this is used in conjunction with only a main.tf then you will have to input at runtime or change default values with --var. You can specify locals in this file but they will still be immutable.
+The variables.tf file is parsed first and establishes a list of variables, if this is used in conjunction with only a main.tf then you will have to input values at runtime or overwrite/set values with --var. You can specify locals in this file but they will still be immutable, as far as I'm aware its best practice to keep locals in main.tf and only use variables.tf for blocks.
 
-2) **.tfvars files:** the .tfvars file is used to PASS IN values to a run, for instance if you have the above variables.tf you could simply run it and enter in the region / use the default or override instance_type with --vars BUT if you wanted to specify a single list of values at runtime you can create a .tfvars file like below:
+2) **.tfvars files:** the .tfvars file is used to PASS IN values to a run. For instance, if you have the above variables.tf you could just plan/apply the main.tf and manually input the region & use the default instance_type/override it with --vars... BUT if you wanted to specify a single list of values at runtime you can create a .tfvars file like below:
 ```HCL
 # file called vars_for_run.tfvars
 instance_type="SomeValue"
 region="SomeRegion"
 ```
-we can then call this .tfvars file at runtime with: `terraform plan/apply --var-file vars_for_run.tfvars` after we call it it will override block based variables in variables.tf & in main.tf with the specified values.
+we can then call this .tfvars file at runtime with the `--var-file` flag e.g. `terraform plan/apply --var-file vars_for_run.tfvars` after we call it, it'll override block based variables in variables.tf & in main.tf with the specified values.
+
+**summary / TL;DR:** variables.tf is for variable declaration, .tfvars are for runtime variable assignment
+
+### 4) use cases for variables in a DSO context...
+#flesh_out
 
 
 ---
