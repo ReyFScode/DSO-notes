@@ -57,3 +57,4 @@ use the `wsl  [command here]` to run a one-off Linux command in your PowerShell 
 
 ---
 
+[Network Topology Types: Complete Overview (nakivo.com)](https://www.nakivo.com/blog/types-of-network-topology-explained/)
