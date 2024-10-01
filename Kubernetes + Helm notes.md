@@ -99,6 +99,8 @@ you can turn swap back on with:   `sudo swapon -a` , you can remove the hold fro
 	Then, you can use `kubectl` commands with a specific context to interact with the corresponding cluster:
 
 18. **CNI**: Container Networking Interface (CNI) plugins are essential components in Kubernetes clusters responsible for facilitating network communication between pods, enabling seamless connectivity both within and across nodes. They assign IP addresses to pods, enforce network policies, and manage traffic routing within the cluster. Each CNI plugin integrates with Kubernetes to provide networking capabilities tailored to specific requirements, such as scalability, performance, and security. Popular CNI plugins like Calico, Flannel, and Cilium offer diverse features and deployment options, allowing users to choose the most suitable solution for their cluster environment. By installing and configuring a CNI plugin, Kubernetes administrators ensure that pods can communicate effectively, enabling applications to function correctly within the cluster.
+    
+19. **Control loop:** This is the name of the process that K8s uses to manage cluster state, the control loop is essentially constantly comparing the cluster state with the desired state and performing actions that ensure the cluster is always at its desired state.
 
 
 
@@ -111,9 +113,18 @@ Kubernetes architecture consists of several components working together to manag
 
 **Control Plane Components**:
     - **kube-apiserver**: This component in Kubernetes is analogous to the Docker Swarm manager in terms of functionality. Both serve as the entry point for cluster management operations and expose APIs for interacting with the cluster. They are responsible for receiving and handling requests to create, update, and delete resources in the cluster.
+    - 
     - **etcd**: This distributed key-value store in Kubernetes serves as the cluster's backing store for all cluster data. In Docker Swarm, a similar function is performed by the built-in Raft consensus algorithm, which manages the cluster state and ensures consistency across manager nodes.
+    - 
     - **kube-scheduler**: The Kubernetes scheduler is responsible for selecting an appropriate node for newly created pods based on resource requirements, affinity/anti-affinity rules, and other constraints. In Docker Swarm, container placement decisions are made by the built-in scheduler, which ensures optimal resource utilization across the cluster.
-    - **kube-controller-manager**: This component in Kubernetes runs controller processes responsible for maintaining the desired state of the cluster. Similar functionality in Docker Swarm is provided by the built-in controller processes, such as the node controller and replication controller, which ensure that the cluster maintains the desired number of nodes and replicas of services.
+    - 
+    - **kube-controller-manager**: Contains controllers for managing different types of resources. Each controller is responsible for ensuring that the current state of a resource matches its desired state.
+		*Examples include of builtin controllers are:*
+	    **ReplicaSet Controller**: Ensures that the desired number of Pod replicas are running.
+	    **Deployment Controller**: Manages the rollout and updates of Deployments.
+	    **Service Controller**: Handles the creation and management of Services, ensuring that they route traffic correctly.
+	    **etc.** 
+	    You can create custom controllers, this is part of creating operators, more on this in a below section.
     
 **Node Components**:
     - **kube-proxy**: This component in Kubernetes maintains network rules on nodes to enable communication between pods and external traffic. It implements the Kubernetes service abstraction by managing network routing and load balancing. In Docker Swarm, similar functionality is provided by the built-in routing mesh, which ensures that incoming traffic is routed to the appropriate containers across the cluster.
@@ -726,11 +737,177 @@ spec:
 
 
 
+
+----
+
+# **Kubernetes Operators
+
+#### **What it is**
+K8s operators are a more advanced concept. To understand operators it is important to know that kubernetes treats everything as an API object. Operators in kubernetes are a way to leverage this architecture in order to create extensions that extend k8s inherent functionality to comprehensively manage custom applications. 
+
+That's a lot. to break that down lets first learn/refresh a couple key terms:
+1. **Custom Resource Definitions (CRDs):** Operators use CRDs to define the custom resources (CRs) that represent the desired state of the application. For instance, a database operator might define a CRD for a database instance. CRDs allow us the use YAML manifests to define states for our resources (AKA objects).
+   
+2. **Controller**: At the core of an operator is a controller, which is a control loop that watches the state of your application through the Kubernetes API and makes changes as needed to maintain the desired state. It responds to events and changes in resources.
+	**NOTE:** controller is NOT the control plane. The Kubernetes Control Plane consists of several components (like the API server, etcd, controller manager, and scheduler) that manage the overall state of the cluster. While controllers are part of the control plane (specifically the controller manager), the term "controller" in the context of CRDs usually refers to the specific logic you implement to manage the lifecycle of your custom resources.
+
+#### **Why operators**
+"Kubernetes can manage and scale [stateless applications](https://www.redhat.com/en/topics/cloud-native-apps/stateful-vs-stateless), such as web apps, mobile backends, and API services, without requiring any additional knowledge about how these applications operate. The built-in features of Kubernetes are designed to easily handle these tasks.
+
+However, stateful applications, like databases and monitoring systems, require additional domain-specific knowledge that Kubernetes doesn’t have. It needs this knowledge in order to scale, upgrade, and reconfigure these applications....The function of the operator pattern is to capture the intentions of how a human operator would manage a service. A human operator needs to have a complete understanding of how an app or service should work, how to deploy it, and how to fix any problems that may occur.
+
+The site reliability engineer or operations team typically writes the software to manage an application, but an operator is designed to take human operational knowledge and encode it into software to manage and deploy Kubernetes workloads while eliminating manual tasks."[What is a Kubernetes operator? (redhat.com)](https://www.redhat.com/en/topics/containers/what-is-a-kubernetes-operator#:~:text=A%20Kubernetes%20operator%20is%20an%20application-specific%20controller)
+
+#### **How we craft operators**
+"The Operator Framework is an open source project that provides developer and runtime Kubernetes tools, enabling you to accelerate the development of an operator.
+
+The Operator Framework includes:
+
+- **Operator SDK:** Enables developers to build operators based on their expertise without requiring knowledge of Kubernetes API complexities.
+- **Operator Lifecycle Management:** Oversees installation, updates, and management of the lifecycle of all of the operators running across a Kubernetes cluster.
+- **Operator Metering:** Enables usage reporting for operators that provide specialized services."
+
+
+Operators always need a CRD and a controller component to work properly, these are written in GO.
+
+For example we will use the operator sdk to create a template for the CRD (like running -o yaml --dry-run=client) and the controller comopnent but then we must define them further to tailor them to our application, example process:
+
+
+
+Let's create a simple Kubernetes Operator using the **Operator SDK**. This example will illustrate a hypothetical `MyApp` application with a CRD.
+
+**Step 1: Install Operator SDK**
+
+You need to have the Operator SDK installed. You can follow the official [Operator SDK installation guide](https://sdk.operatorframework.io/docs/install-operator-sdk/) for your platform.
+
+**Step 2: Create a New Operator**
+
+```bash
+operator-sdk init --domain=myapp.example.com --repo=github.com/example/myapp-operator
+```
+
+**Step 3: Create a CRD**
+
+```bash
+operator-sdk create api --group=app --version=v1 --kind=MyApp --resource --controller
+```
+
+This command generates the CRD and the controller for you.
+
+**Step 4: Define the CRD**
+
+In `api/v1/myapp_types.go`, define your custom resource schema:
+
+```go
+type MyAppSpec struct {
+    Replicas int32 `json:"replicas"`
+    Version  string `json:"version"`
+}
+
+type MyAppStatus struct {
+    AvailableReplicas int32 `json:"availableReplicas"`
+}
+```
+
+**Step 5: Implement the Controller Logic**
+
+In `controllers/myapp_controller.go`, implement the reconciliation logic to handle the desired state:
+
+```go
+func (r *MyAppReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+    var myApp appv1.MyApp
+    if err := r.Get(ctx, req.NamespacedName, &myApp); err != nil {
+        return ctrl.Result{}, client.IgnoreNotFound(err)
+    }
+
+    // Your logic to manage the MyApp resource
+    // Example: Ensure a Deployment is created/updated
+    deployment := &appsv1.Deployment{
+        ObjectMeta: metav1.ObjectMeta{
+            Name:      myApp.Name,
+            Namespace: myApp.Namespace,
+        },
+        Spec: appsv1.DeploymentSpec{
+            Replicas: &myApp.Spec.Replicas,
+            Selector: &metav1.LabelSelector{
+                MatchLabels: map[string]string{"app": myApp.Name},
+            },
+            Template: corev1.PodTemplateSpec{
+                ObjectMeta: metav1.ObjectMeta{
+                    Labels: map[string]string{"app": myApp.Name},
+                },
+                Spec: corev1.PodSpec{
+                    Containers: []corev1.Container{
+                        {
+                            Name:  "myapp",
+                            Image: "myapp-image:" + myApp.Spec.Version,
+                        },
+                    },
+                },
+            },
+        },
+    }
+
+    // Set MyApp instance as the owner and controller
+    ctrl.SetControllerReference(&myApp, deployment, r.Scheme)
+
+    // Create or Update the Deployment
+    err := r.Client.Create(ctx, deployment)
+    if err != nil && !errors.IsAlreadyExists(err) {
+        return ctrl.Result{}, err
+    }
+
+    // Optionally, update status
+    myApp.Status.AvailableReplicas = deployment.Status.AvailableReplicas
+    r.Status().Update(ctx, &myApp)
+
+    return ctrl.Result{}, nil
+}
+```
+
+**Step 6: Deploy the Operator**
+
+Use `make deploy` to build and deploy your operator to a Kubernetes cluster.
+
+**Step 7: Create a Custom Resource**
+
+You can create a custom resource based on your CRD:
+
+```yaml
+apiVersion: app.example.com/v1
+kind: MyApp
+metadata:
+  name: myapp-sample
+spec:
+  replicas: 3
+  version: "1.0"
+```
+
+Apply this to your cluster:
+
+```bash
+kubectl apply -f myapp-sample.yaml
+```
+
+
+
+
+
+
 ----
 
 # **Kubernetes Networking basics**
 
 1
+
+
+
+
+
+
+
+
+
 
 dive into flannel calico and weave / --pod-networ-cidr stuff like that
 ----

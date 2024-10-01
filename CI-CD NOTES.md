@@ -430,3 +430,99 @@ You should avoid hardcoding sensitive information into your pipelines. Instead, 
 
 ---
 # Provider 3 - Jenkins
+
+### Jenkins CI/CD 101: An Intermediate Overview
+
+#### Introduction to CI/CD
+Continuous Integration (CI) and Continuous Deployment (CD) are practices that automate the software development lifecycle, allowing teams to deliver code changes more frequently and reliably. Jenkins is one of the most popular open-source tools that supports CI/CD practices.
+
+#### Key Concepts
+
+1. **Jenkins Basics**
+   - **Jenkins Server**: The central hub where the CI/CD pipeline runs.
+   - **Jenkins Nodes**: Machines that run jobs; can be master/slave architecture.
+   - **Pipeline**: A sequence of automated steps (stages) that define the build, test, and deployment process.
+
+2. **Plugins**
+   - Jenkins has a rich ecosystem of plugins to extend its functionality. Examples include:
+     - **Git Plugin**: Integrates with Git repositories.
+     - **Docker Plugin**: Facilitates building and deploying Docker images.
+     - **Pipeline Plugin**: Allows the creation of pipelines as code.
+
+3. **Jenkinsfile**
+   - A text file that defines a Jenkins pipeline using a domain-specific language (DSL). This file can be versioned with your source code.
+   - Example structure:
+     ```groovy
+     pipeline {
+         agent any
+         stages {
+             stage('Build') {
+                 steps {
+                     sh 'make'
+                 }
+             }
+             stage('Test') {
+                 steps {
+                     sh 'make test'
+                 }
+             }
+             stage('Deploy') {
+                 steps {
+                     deployToProduction()
+                 }
+             }
+         }
+     }
+     ```
+
+#### Building a Pipeline
+
+1. **Setting Up Jenkins**
+   - Install Jenkins on a server (local or cloud-based).
+   - Configure global settings like JDK, Git, and other necessary tools.
+
+2. **Creating a New Job**
+   - Use the "New Item" feature to create a Freestyle project or Pipeline.
+   - For a Pipeline project, specify the location of the `Jenkinsfile` in your repository.
+
+3. **Defining Stages**
+   - **Build Stage**: Compile the code, generate artifacts (e.g., JAR, WAR files).
+   - **Test Stage**: Run unit tests and integration tests. Use tools like JUnit or Selenium.
+   - **Deploy Stage**: Deploy artifacts to production or staging environments. Integrate with tools like Kubernetes or AWS.
+
+#### Advanced Concepts
+
+1. **Parameterized Builds**
+   - Allow users to input parameters at runtime, enabling more flexible builds. For example, you might want to deploy to different environments based on user input.
+
+2. **Webhook Integration**
+   - Set up webhooks in your version control system (e.g., GitHub, GitLab) to trigger builds automatically when code is pushed.
+
+3. **Post-Build Actions**
+   - Define actions that occur after the build completes, such as sending notifications (Slack, email), archiving artifacts, or triggering downstream jobs.
+
+4. **Environment Variables**
+   - Utilize Jenkins environment variables to configure builds dynamically. You can use the `env` object within the Jenkinsfile to access these variables.
+
+5. **Pipeline as Code**
+   - Store `Jenkinsfile` in the version control system to enable versioning of your CI/CD pipeline. This practice ensures consistency across different environments.
+
+6. **Declarative vs. Scripted Pipelines**
+   - **Declarative Pipelines**: More structured and user-friendly syntax.
+   - **Scripted Pipelines**: Offers more flexibility but requires a deeper understanding of Groovy.
+
+#### Best Practices
+
+1. **Version Control Everything**
+   - Keep your `Jenkinsfile` and any configuration scripts in version control to track changes and facilitate collaboration.
+
+2. **Use Shared Libraries**
+   - Create reusable components or functions that can be shared across multiple pipelines to reduce duplication.
+
+3. **Monitor and Optimize**
+   - Monitor the performance of your pipelines and optimize them by identifying bottlenecks. Use Jenkins monitoring plugins for insights.
+
+4. **Security Considerations**
+   - Regularly update Jenkins and plugins to patch vulnerabilities.
+   - Use credentials binding to manage sensitive information securely.
+

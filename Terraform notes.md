@@ -273,7 +273,7 @@ Terraform will handle the provisioning and management of the EC2 instance based 
 # **Terraform variables
 
 Terraform provides a handful of ways to handle variables so that playbooks can utilize them.
-source of truth: [Terraform Variables: A Comprehensive Guide to Dynamic Infrastructure Configuration (terrateam.io)](https://terrateam.io/blog/terraform-variables/)
+*source of truth:* [Terraform Variables: A Comprehensive Guide to Dynamic Infrastructure Configuration (terrateam.io)](https://terrateam.io/blog/terraform-variables/)
 
 
 ### 1) Common Variable types
