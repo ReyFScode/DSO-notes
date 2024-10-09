@@ -57,7 +57,7 @@ newlist = string1.split(",")
 
 ### removing empty elements
 you can remove empty elements from a list with a filter:
-`list2 = list1(filter(None, list1))`
+`list2 = list(filter(None, list1))`
 
 
 ### removing certain identical elements
@@ -142,8 +142,9 @@ del SomeList[1:3] # Removes elements at positions 1 to 2 (2, 3). Output: [1, 4, 
 
 ```
 
+---
 
-## Modules v Libraries
+# Modules v Libraries
 ### **Modules:**
 
 - **Definition**: A module is a single file containing Python code. It can define functions, classes, and variables, and it can also include runnable code.
@@ -153,9 +154,8 @@ del SomeList[1:3] # Removes elements at positions 1 to 2 (2, 3). Output: [1, 4, 
 - **Definition**: A library is a collection of modules and packages bundled together to provide a set of related functionalities. It is a broader term that can encompass many modules.
 - **Usage**: Libraries offer a wide range of functionalities. For example, the `pandas` library includes multiple modules and sub-packages for data manipulation and analysis.
 
-# Variables
-
-Classic variables = 
+# Data structures
+ 
 
 Lists [Python Lists - GeeksforGeeks](https://www.geeksforgeeks.org/python-lists/)
 
@@ -163,8 +163,89 @@ Dictionaries
 
 dataframes (bonus)
 
+
+
+
+
+
+
+---
 # Logic
 *source of truth=
+
+
+- **while**: while loops do something while something is true:
+```
+while True:
+	x = input('enter something')
+	 print(x)
+	 
+#this will infinitely prompt for input and display the input since true never changes, to break this we can use some conditional logic like if to break in response to a condition.
+```
+
+
+- **for**: for will increment over something and operate on each element:
+```
+list1 = [1, 2, 3]
+
+for x in list1:
+	print(x+1)
+
+#increments over each value and prints the value + 1 (output: 2, 3 ,4)
+```
+
+
+- **for in range**: A implementation of a for loop, very useful, for in range will increment to a specified value, uses computer counting:
+```
+for x in range(5):
+	print(x)
+#increments from 0-4 (5 total), output=0,1,2,3,4
+
+# can also be used to set a start and upper bound:
+for x in range(7, 11)
+	print(x)
+#increments by 1 from 7-10, not 11, since the upper bound terminates
+
+#we can also use steps to determine exactly how many values to increment by:
+for x in range(0, 11, 2):
+	print(x)
+#increments from 0-10 by 2, output: 0,24,6,8,10
+
+
+often used with lists like:
+for x in range(len(test_list)):
+```
+
+
+- **if**: this is catch logic that responds if a condition is met:
+```
+while True:
+	x = input(":")
+	if x == '5':
+	   print("you input 5!"); break
+
+# Continues to prompt for input until 5 is detected, if 5 is detected we print a message and break out of the while loop terminating the program
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # splitting/appending
 *source of truth=
