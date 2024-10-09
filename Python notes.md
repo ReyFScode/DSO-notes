@@ -142,6 +142,13 @@ del SomeList[1:3] # Removes elements at positions 1 to 2 (2, 3). Output: [1, 4, 
 
 ```
 
+
+
+list zipping
+
+del list[index]
+
+
 ---
 
 # Modules v Libraries
@@ -157,9 +164,83 @@ del SomeList[1:3] # Removes elements at positions 1 to 2 (2, 3). Output: [1, 4, 
 # Data structures
  
 
-Lists [Python Lists - GeeksforGeeks](https://www.geeksforgeeks.org/python-lists/)
+##### Lists [Python Lists - GeeksforGeeks](https://www.geeksforgeeks.org/python-lists/)
 
-Dictionaries
+mutable collections
+assigned with `list=[1,2,3]`
+
+##### tuples
+immutable collections of items
+assigned with `something='1','2'`
+
+
+
+##### Dictionaries
+Dictionaries are used to store data in key-value pairs. Each key is unique and immutable, but values can be mutable and can include anything, such as lists, other dictionaries, integers, strings, etc.
+
+2. **Creating a Dictionary**: 
+   - You create dictionaries with curly braces: 
+     ```python
+     somedict = {}
+     ```
+
+3. **Adding Values**: 
+   - You can add values to dictionaries by creating a key and assigning a value:
+     ```python
+     somedict['testkey'] = 'test value'
+     ```
+   - If you want a key to store multiple values, you can use a list or comma separation (tuple)
+     ```python
+     somedict['testkey'] = ['test value', 'other value']
+      somedict['testkey2'] ='1', '2'
+     ```
+
+4. **Accessing Values**: 
+   - You can access values in dictionaries by using the key name:
+     ```python
+     print(somedict['testkey'])  # Outputs the value associated with 'testkey'
+     ```
+   - you can access specific items using an index, if its a collection of values you will get the index, if it is a single value you will get the character at the index:
+     ```python
+     dict1 = {}
+     dict1['key1'] = '1', '2'
+     dict1['key2'] = 'some_value'
+
+     print(dict1)  # Outputs: {'key1': ('1', '2'), 'key2': 'some_value'}
+
+     # Accessing all of key 1:
+     print(dict1['key1'])  # Outputs: ('1', '2')
+
+     # Accessing the second item in key1:
+     print(dict1['key1'][1])  # Outputs: '2'
+
+     # Accessing the second character in key2:
+     print(dict1['key2'][1])  # Outputs: 'o'
+     ```
+
+5. **Appending Values**:
+   - You cannot directly append a value to a key in a dictionary. However, if the value is a list, you can append to that list, because the dictionary simply holds a pointer to the list the value will be reflected immediately 
+     ```python
+     dict1 = {}
+     somelist = ['1', '2', '3']
+     dict1['list_key'] = somelist
+
+     # Append to the list
+     somelist.append('4')  # Now somelist is ['1', '2', '3', '4']
+
+     # Accessing the updated list
+     print(dict1['list_key'])  # Outputs: ['1', '2', '3', '4']
+     ```
+
+### Additional Points
+
+- **Mutability**: Values in dictionaries can be mutable (like lists) or immutable (like strings or tuples). If you assign a new value to a key, it replaces the old value.
+  
+- **Dictionary Methods**: Familiarize yourself with useful dictionary methods such as `.keys()`, `.values()`, and `.items()` for accessing keys, values, and key-value pairs, respectively.
+
+- When you store a list (or any mutable object) in a dictionary, what you’re actually storing is a reference (or pointer) to that list, not a copy of it.
+
+
 
 dataframes (bonus)
 
@@ -195,7 +276,7 @@ for x in list1:
 ```
 
 
-- **for in range**: A implementation of a for loop, very useful, for in range will increment to a specified value, uses computer counting:
+	- for in range:   A implementation of a for loop, very useful, for in range will increment to a specified value, uses computer counting:
 ```
 for x in range(5):
 	print(x)
@@ -209,7 +290,7 @@ for x in range(7, 11)
 #we can also use steps to determine exactly how many values to increment by:
 for x in range(0, 11, 2):
 	print(x)
-#increments from 0-10 by 2, output: 0,24,6,8,10
+#increments from 0-10 by 2, output: 0,2,4,6,8,10
 
 
 often used with lists like:
@@ -217,20 +298,61 @@ for x in range(len(test_list)):
 ```
 
 
-- **if**: this is catch logic that responds if a condition is met:
+	- for loops using enumerator iterator:   we can use the enumerate() function to go through a list, enumerate is a builtin function that creates an iterator for lists, this returns the list index + value:
+```
+list1=[10, 20, 30, 6]
+
+
+print(list(enumerate(list1)))
+#prints raw output of the enumerate function(object must be list): [10, 20, 30, 6]
+
+
+for num in enumerate(list1): 
+	print(num)
+#will print the output of the enumerate object individually: 
+# (0, 10)
+# (1, 20)...
+
+for x, y in enumerate(list1): 
+	print(x); print(y)
+#will iterate through both the index and value and print them individually:
+# 0
+# 10
+# 1
+# 20...
+# This is particularly useful for creating hashmaps(dictionaries) that contain both an index and a value for list elements
+
+```
+
+
+
+- **if + if/else**: this is catch logic that responds if or if/else a condition is met:
 ```
 while True:
 	x = input(":")
 	if x == '5':
 	   print("you input 5!"); break
+	else: print('not 5!')
 
-# Continues to prompt for input until 5 is detected, if 5 is detected we print a message and break out of the while loop terminating the program
+# Continues to prompt for input until 5 is detected, if 5 is detected we print a message and break out of the while loop terminating the program. else handles anything but 5.
+
+
+x = ""
+y = "somevalue"
+if x: print('true')
+else: print('false')
+if y: print('true')
+else: print('false')
+# empty variables are considered false, so we can use if to handle checking if things exist, here x will print false because its empty, and y will print true because it has a value, good way to handle empty returns from functions e.g
+if "returned value": print("the func returned a value")
+else: print("no value returned")
 ```
 
 
 
 
 
+try except
 
 
 
@@ -246,9 +368,33 @@ while True:
 
 
 
-
-# splitting/appending
+# File modification
 *source of truth=
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # --------Common Modules -------
