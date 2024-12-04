@@ -53,33 +53,391 @@ add eval command (runs something as if it were a command typed in)
 
 
 
-#### **User space and kernel space**
+# Core OS terminology
+
+**heap** - segment of memory that can be controlled dynamically, essentially a free pool of memory that can run your application.
+
+**stack** - segment of memory where specific data like local variables or function calls gets added and removed in "last in, first out"
+
+**process** - refers to a current program under execution, linux processes run isolated in the background so they do not interrupt each others execution, we can view them with the `ps aux` command. **Everything running in Linux is considered a process.**
+
+**Service** - refers to a process that are managed by the service manager (e.g. systemd), Services are triggered by the service manager based on certain events or conditions (e.g., at boot, shutdown, on-demand, or at specific times). For example, a service may start automatically when the system boots (e.g., `sshd` for SSH access), or it may start on a timer, or be manually started by the user. Services are a way we ensure particular critical processes that are important for the system are always running when necessary.
+
+**threads** - a thread is a lightweight process, processes can create threads to do work quickly and concurrently we can see threads per process in the nlwp field when we run `ps aux -L`.Threads will share the same resources and memory as the process that spawned them.
+
+**syscall** - procedure that an application invokes to make calls from the user space to the kernel space to perform a task. e.g. for vim to open a file it must make an open() system call to the kernel to perform that task.
+
+**hardlink** - a hardlink is a a directory entry that points to a selected file, if the file is deleted its data still exists in the hardlink, and data changes in one are reflected in the other ala bindmount. They share the indode number of their link source so they are resource efficient. they cannot span filesystems. created with the `ln` command, often used for backup systems since they perserve the data of their origin file but do not take up additional disk space
+
+**softlink** - a soflink is also a symbolic link to a file but it has its own inode assignment, can span filesystems. if the source file is deleted the link file "dangles" and points to nothing. created with `ln -s`. we often softlink applications to /bin when we want them to be available by command.
+
+**inode** - unix data struct that contains metadata about the file.
 
 
-#### **Subshell execution / variable expansion**
-"" v ' '
-$()
+---
+# The boot process
+
+1- power on initiates BIOS/UEFI firmware (uefi is more common nowadays) to load from ROM.
+
+2- BIOS/UEFI runs the POST check, simply a check to ensure all hardware is baseline functional and responds to power. POST errors will be piped to the screen/shown through light flashes on the physical device.
+
+2- UEFI (reads from partition table) or BIOS (reads from master boot record), searches for a disk with a boot partition. If a hard drive with a boot partition is found it loads the bootloader from this partition into memory
+
+3- the bootloader (commonly GRUB2) is then responsible for loading the OS kernel into the computers memory
+
+4- once the kernel is loaded is takes control of system resources and begins to initialize the OS. To assist with this it sets up an initial ramdisk which is a temporary filesystem in memory.
+
+5- The initialization process starts by loading device drivers and running secondary hardware checks, then it mounts the root filesystem, next it starts the master init process (often systemd).
+
+6- `systemd` handles loading daemons (and starts them if the unit file specifies), configures networking, and low-level tasks, preparing the system to the specified start target (graphical, multi-user, etc.).the OS is now live and the system is ready.
 
 
 
 
-#### **-----Intermediate/Advanced Concepts:------**
-#add-syscalls
+---
+# Systemd
 
-##### **Interprocess communication (IPC)** (flesh out a lil more, for clarity, study a little more)
-There are a handful of ways that Linux facilitates IPC, we will go over two primary ways here. For an awesome guide on all things IPC use this link: [https://tldp.org/LDP/tlk/ipc/ipc.html](https://tldp.org/LDP/tlk/ipc/ipc.html#:~:text=Processes%20communicate%20with%20each%20other%20and%20with%20the,T%20M%20release%20in%20which%20they%20first%20appeared.)
- 1. **Pipes:**
-If you remember from above this symbol `|` is a pipe. When are stitch commands together with this symbol you are creating what is called an anonymous pipe. Pipes are one of the simplest forms of IPC in Linux. They allow communication between two related processes, typically a parent process and its child process. Pipes are unidirectional, meaning data flows in one direction. There are two types of pipes: anonymous pipes and named pipes (FIFOs). Anonymous pipes are created using the `|` operator and exist as long as the processes communicating through them are alive. Named pipes, on the other hand, are created using the `mkfifo` command and persist even after the processes that created them terminate.
-2. **Sockets:**
-Sockets provide a more versatile form of IPC, allowing communication between unrelated processes, either on the same machine or across a network. There are two types of sockets:  TCP/IP sockets (stream sockets (TCP) and datagram sockets (UDP), and raw sockets) and UNIX sockets. TCP/IP sockets provide reliable network connection-oriented communication, while UNIX sockets provide Interprocess communication on the same machine. Sockets are created using the `socket()` system call and can be used with various other system calls like `bind()`, `listen()`, `connect()`, `accept()`, `send()`, and `recv()`. *reference*: https://www.baeldung.com/linux/unix-vs-tcp-ip-sockets
+**terminology**: 
 
->**Named Pipes V sockets for IPC on the same host:** 
->**FIFO pipes** are chosen for simpler, **unidirectional** data streaming tasks where ease of use and simplicity are paramount.  **Unix sockets** are utilized when you need advanced IPC features, bidirectional communication, or better performance for complex data transfer scenarios.
+- **Target**  
+A target in `systemd` is a grouping of unit files that allows the system to reach a specific state or mode. Each target defines a boot goal, such as reaching a basic system state, a multi-user state, or a graphical interface. For example, `default.target` is often set to a multi-user or graphical target by default, while `graphical.target` includes all necessary services to support a graphical user interface in addition to standard services.
+
+- **Service (daemon)**  
+A service (or daemon) is a process that `systemd` can manage, normally loaded at boot. Services may be configured to run automatically at boot or to start upon specific triggers or conditions, like a manual start. These services often run in the background, handling system tasks such as logging or network management.
+
+- **Unit file**  
+A unit file in `systemd` is a configuration file that describes a resource managed by `systemd`, such as a service, mount point, or target. Unit files specify details like dependencies, startup order, and conditions under which a service or target should start. They contain key information for `systemd` to control and manage various system components.
+
+
+---
+# kernel / user space
+
+**What is kernel space:**  
+Kernel space is the memory area where the kernel (the core of the operating system) operates and manages system resources directly. Processes in kernel space have full, unrestricted access to hardware resources, which allows the kernel to perform low-level tasks such as process management, memory management, and hardware interactions. Only the kernel and its privileged operations execute in kernel space, ensuring system stability and security.
+
+**What is user space:**  
+User space is the area of the operating system where user applications run and interact with the OS through GUIs, terminals, or command-line interfaces. Programs in user space operate with limited privileges and access representations or abstractions of kernel-space resources rather than directly accessing them. This separation protects the system by isolating user applications from critical system functions.
+
+**How user space communicates with kernel space:**  
+User space communicates with kernel space primarily through system calls (syscalls) — predefined functions provided by the kernel that enable user processes to request services like file operations, process control, or memory management. Common examples include `fork()`, `read()`, `write()`, and `kill()`. This controlled access helps prevent unauthorized or harmful modifications to the core of the OS, maintaining system integrity and security.
 
 
 
-##### **processes and signals**
-A process is defined as a running instance of a program,  we can view processes by running the `ps` command with varying flags `ps -aux` is usually the standard (all processes with a high level of detail), but to get specific process we specify `ps -C [name e.g systemd] `. Signals are sent to processes to invoke an action, the commonly used ones are SIGKILL invoked with `kill -9 [pid]` which forcefully kills a process, or SIGINT invoked with ctrl+c which interrupts a program and requests a graceful termination.
+---
+# File Descriptors
+ 
+In Linux, everything is treated as a file. Because of this, processes have an easy way to interact with system objects. File descriptors (FDs) are non-negative integers used by processes to manage file access, as well as handle input and output. Each process has its own file descriptor table, which is associated with its PID.
+
+The most well-known file descriptors are:
+
+- **0** - stdin
+- **1** - stdout
+- **2** - stderr
+
+When a new process is created, it inherits the standard-stream file descriptors (0,1,2) from its parent, but it can also open additional files, which are assigned the next available non-negative integer as its file descriptor from its table. The number of file descriptors a process can have in its table is limited and can be viewed with `ulimit -n`.
+
+Since EVERYTHING is a file, FDs can be assigned to ANYTHING that needs to be opened/interacted with: files, sockets, pipes, devices, etc. Even stdin, stdout, and stderr are references to data streams, represented as files (STDIN_FILENO, STDOUT_FILENO, and STDERR_FILENO).
+
+we know the /proc directory contains data/info on all processes so to see the associated file descriptors for a PID we can simply run (to show the links that the file descriptors have made to opened files) ls -l /proc/PID/fd.
+
+
+
+
+---
+# Process management
+ 
+ Processes are instances of a running program, the process encompasses the entire execution context (current state, resource usage, etc.). Every process in linux is assigned a unique PID.
+
+**Core process terminology:**
+- **Parent:** The process that creates (or spawns) another process. It has control over and can communicate with the child processes it creates.
+- **Child:** A process that is created by another process (the parent). It inherits some of the parent’s environment and runs as a separate instance under the parent’s control.
+- **Exit Status:** A code returned by a process upon its completion, indicating success or failure. A status of `0` usually signifies success, while any non-zero value indicates an error or specific exit condition.
+- **PID:** Stands for Process ID, a unique numerical identifier assigned by the operating system to each running process for tracking and management.
+
+**Process states**:
+A process can be in one of 4 states: 
+- *Running*: The process is actively using the CPU.
+- *sleeping*: The process is waiting for some event (like I/O) or free resources to complete.
+- *Stopped*: The process has been stopped, usually by a signal.
+- *Zombie*: The process has completed execution but still has an entry in the process table. (More on this below)
+
+
+**Zombie Processes:**
+"When a process dies on Linux, it isn't all removed from memory immediately -- its process descriptor stays in memory (the process descriptor only takes a tiny amount of memory). The process's status becomes EXIT_ZOMBIE and the process's parent is notified that its child process has died with the SIGCHLD signal. The parent process is then supposed to execute the wait() system call to read the dead process's exit status and other information. This allows the parent process to get information from the dead process. After wait() is called, the zombie process is completely removed from memory...This normally happens very quickly, so you won't see zombie processes accumulating on your system. However, if a parent process isn't programmed properly and never calls wait(), its zombie children will stick around in memory until they're cleaned up."[What Is a "Zombie Process" on Linux? (howtogeek.com)](https://www.howtogeek.com/119815/htg-explains-what-is-a-zombie-process-on-linux/)
+
+"Zombie processes don't use up any system resources. (Actually, each one uses a very tiny amount of system memory to store its process descriptor.) However, each zombie process retains its process ID (PID). Linux systems have a finite number of process IDs -- 32767 by default on 32-bit systems. If zombies are accumulating at a very quick rate -- for example, if improperly programmed server software is creating zombie processes under load -- the entire pool of available PIDs will eventually become assigned to zombie processes, preventing other processes from launching"
+
+---
+# Troubleshooting best practices/essential high level commands
+
+running commands with &, nohup, or & + nohup:
+
+***Essential troubleshooting comms (first 60 seconds)***
+some of these require the sysstat package to be installed, if that is required an * will be next to the command.
+
+- `uname -a ; ip a ; lscpu` - This is my contribution, this will give you the system name, kernel version, CPU architecture (x86/86_64), and the ip address and network interfaces for the system, and the number of logical cpus on the machine (important for ensuring you know if saturation is occurring).
+
+
+- `df -h`  - shows disk space across devices
+
+
+- `free -wh` - this command prints a memory usage snapshot, the main thing we are looking at here is that 'free' isn't close to 0, ~0 will indicate that we are low/out of memory space. -w is for wide output (more detailed), -h is for human readable.
+  
+
+- `uptime` - this command is a way in which you can view the load averages of the system. It will also show you the time the system has been up. Example output (8 core system):
+```
+$ uptime 
+23:51:26 up 21:31, 1 user, load average: 30.02, 26.43, 19.02
+```
+While the time the system has been up can be a valuable metric the load averages are a very useful tidbit, load averages are the averages of load over 1,5,and 15 minutes. The load averages are given as raw values, and they represent the _number of processes waiting for CPU time_. A load average value of 30.02 means that, on average, there are about 30 processes waiting for CPU resources in the last minute. A value < the amount of cores indicates that there is no overload and thusly no waiting processes. This is not the best way of checking this, vmstat is better.
+
+
+- `dmesg -H | tail [-x]` / `dmesg -H | less` - the dmesg command allows us to read system messages, when we say system messages we mean very low level messages from the kernel ring buffer.. Running `dmesg -H | tail ` will give us the last 10 system messages, we can get more by specifying e.g. -20 to get the last 20, piping to less will allow us to use the enter key to scroll through all messages.
+  
+
+
+- **`vmstat 1`** - This command provides a powerful way to check memory statistics as they relate to processes. When run with a `1` argument, `vmstat` refreshes the output every second, allowing us to monitor changes over time and catch any anomalies in real-time. Here is an example of the output:
+```
+$ vmstat 1
+procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+ 1  0      0  28977    561   1759    0    0     0     3    2    6  0  0 100  0  0
+ 3  2      0  28977    561   1759    0    0     0     0   10   64  0  0 100  0  0
+```
+
+ **Key Columns to Check**:
+
+1. **r** (run queue): - This column shows the number of processes **currently running on the CPU or waiting for CPU time**. These processes are **actively ready** to run and just need CPU time to execute. A value greater than the number of CPU cores indicates that the system is under CPU saturation, with more processes needing CPU time than there are CPUs to handle them.
+    
+    - **Interpretation**: If the **r** value exceeds the number of CPU cores, it indicates CPU saturation (i.e., too many processes waiting for CPU time).
+      
+2. **b** (blocked queue): - This shows the number of processes that are **blocked** because they are waiting on I/O operations (e.g., waiting for data from the disk or network, or if a program is trying to access data in memory and the required memory is not available (due to a **page fault**)). These processes are **not ready to execute** until their I/O operations complete.
+    
+3. **free**:  
+    Free memory available in kilobytes. This value shows how much unused memory the system has.
+    
+4. **si** (swap in) and **so** (swap out):
+    
+    - **si**: The amount of memory swapped in from disk to RAM.
+    - **so**: The amount of memory swapped out from RAM to disk.
+    - **Interpretation**: Non-zero values for **si** and **so** may indicate that the system is running low on memory and is swapping processes in and out of disk, which can significantly degrade performance.
+5. **us** (user CPU time), **sy** (system CPU time), **id** (idle CPU time), **wa** (waiting for I/O), **st** (stolen time):  
+    These columns show how CPU time is being used across all CPUs, broken down into:
+    
+    - **us**: Time spent executing user-space processes.
+    - **sy**: Time spent executing kernel-space processes (system time).
+    - **id**: Time the CPU was idle.
+    - **wa**: Time the CPU was waiting for I/O (e.g., disk or network).
+    - **st**: Time the CPU is stolen from virtual machines (relevant for virtualized environments like Xen or KVM).
+    
+    **Interpretation**:
+    
+    - A high **wa** value indicates a disk bottleneck because the CPU is idle while waiting for I/O operations to complete.
+    - A **sy** value greater than 20% suggests that the kernel might be inefficiently handling I/O, which may require further investigation into the system's I/O performance.
+    - **us + sy** gives the total percentage of time the CPU is actively working on processes (excluding idle and wait time).
+
+
+- ` ps aux --forest / ps aux -L` - this command lists all the processes running on the system with extreme verbosity, especially as it pertains to commands that invoked them, since this is simply a snapshot it is easy to miss processes that come and go quickly, to explore processes in a more interactive way we use `top`. If we do see something that seems suspicious and we want to analyze the startup command we can use ps with grep to target that particular process. --forest indicates we want a process tree (shows parent/child processes), -L shows we want to see # of threads per process (nlwp).
+  
+
+- `top` - this is an enormously useful utility, top gives us two primary areas of information, an upper level which contains cpu and memory information, and a lower level which contains a process table (the top level also has a task state summary and uptime info). unlike some other commands top wont just print output it is an actual utility that you can interact with. when you enter the top utility you should hit '1' and 'e' to open up an entry for each cpu core and to change the process table memory values to something more human readable. you can use arrow keys to scroll up/down/L/R on the process table. A downside to top is that it is harder to see patterns over time, which may be more clear in tools like vmstatand pidstat, which provide rolling output. Evidence of intermittent issues can also be lost if you don’t pause the output quick enough, Ctrl+S to pause, Ctrl+Q to continue, and the screen clears.
+	***CPU table stats + meaning:***
+	- **us:** Amount of time the CPU spends executing processes for people in "user space."
+	- **sy:** Amount of time spent running system "kernel space" processes.
+	- **ni:** Amount of time spent executing processes with a manually set nice value.
+	- **id:** Amount of CPU idle time.
+	- **wa:** Amount of time the CPU spends waiting for I/O to complete.
+	- **hi:** Amount of time spent servicing hardware interrupts.
+	- **si:** Amount of time spent servicing software interrupts.
+	- **st:** Amount of time lost due to running virtual machines ("steal time").
+	
+	***Process table stats + meaning:***
+	- **PID:** Process ID.
+	- **USER:** The owner of the process.
+	- **PR:** Process priority.
+	- **NI:** The nice value of the process.
+	- **VIRT:** Amount of virtual memory used by the process.
+	- **RES:** Amount of resident memory used by the process.
+	- **SHR:** Amount of shared memory used by the process.
+	- **S:** Status of the process. (See the list below for the values this field can take).
+	- **%CPU:** The share of CPU time used by the process since the last update.
+	- **%MEM:** The share of physical memory used.
+	- **TIME+:** Total CPU time used by the task in hundredths of a second.
+	- **COMMAND:** The command name or command line (name + options).
+
+
+- * `mpstat -P ALL 1` - mpstat is for diving into cpu statistics, we run -P ALL to specify that we want details for all logical cpus, and 1 to set the command to output every 1 second (to track stats over time). 
+
+
+- * `pidstat / pidstat 1 / pidstat -p [pid] 1` - the pidstat command allows us to view cpu utilization of processes at a point in time, over time, or cpu utilization of a specific process. just using pidstat gives us a point in time snapshot of all processes running at the current moment and their cpu usage. pidstat 1 gives us a rolling output of processes running + their usage, pidstat -p pid 1, gives us a rolling output for the usage of a particular process.
+  
+  
+- * ` iostat 1 / -xz` - this command is used to get a snapshot of disk statistics (read/write per second, etc.) refreshing each second, -xz gives us highly verbose output.
+	look for: 
+	- *avgqusz:* The average number of requests issued to the device. Values greater than 1 can be evidence of saturation
+	- *%util:* Device utilization. This is really a busy percent, showing the time each second that the device was doing work. Values greater than 60% typically lead to poor performance
+	
+
+
+- * `sar -n DEV 1 / sar 1` - sar with -n DEV will print network interface metrics over 1 second intervals, rxkB/s and txkB/s, as a measure of workload. sar 1 will simply print cpu utilization metrics over 1 second intervals.
+
+
+
+- * `sar -n TCP 1`  - prints tcp connection metrics over 1 second intervals, you are primarily looking at:
+	-*active/s*: number of locally initiated connections/s
+	-*passive/s*: number of remote initiated connections/s
+	-*retran/s*: number of retransmissions/s
+
+
+
+---
+
+## More troubleshooting commands
+
+`lsof` - This command shows all open files and what process they are opened by. `lsof -p [pid]` allows us to filter this and check which files are opened by a target process
+
+`fuser -v ./*` - this command find all processes that are associated/using a file or directory (-v gives us verbose output), the above example uses a wildcard to target all files in our directory but we can target specific files by path + name if required
+
+`fuser -v -n tcp [port]` - this command allows us to find all processes that are tied to a specific network socket, e.g replacing port with 22 would return sshd.
+
+`nc -v` - the netcat utility is useful for port scanning/listening examples:
+-zv : `nc -zv google.com 443` will ping google.com at port 443, useful for testing open ports, we can also use this for port scanning by specifying a port range e.g `nc -zv localhost 1-10000`
+-l : `nc -lv 1234` sets up listening on target port
+
+`nmap IP -p-` - this command (nmap must be installed) invokes the nmap utility to scan a target IP for all open ports
+
+`mtr IP` - mtr is like ping and traceroute had a baby, we get packet/accessibility information plus the hops to the target. very useful
+
+`iterate through a list of command outputs ` -
+```
+```bash
+for i in $(find ./*); do echo $i >> file.txt; done
+for i in $(find ./*); do echo $i | grep 'mc' ; done
+```
+the above iterates through every object in the current directory and appends it to a file, we can then operate on this file if needed, we can also directly grep on each object only outputting elements with 'mc'.
+
+
+---
+
+## USE methodology
+
+The USE methodology (stands for **u**tilization, **S**aturation, and **E**rrors) is an established way (akin to a checklist) for performance analysis and linux system troubleshooting.
+
+The USE Method can be summarized as:
+
+> **For every resource, check utilization, saturation, and errors.**
+
+It's intended to be used early in a performance investigation, to identify systemic bottlenecks.
+
+Terminology definitions:
+
+- **resource**: all physical server functional components (CPUs, disks, busses, ...)
+- **utilization**: the average time that the resource was busy servicing work
+- **saturation**: the degree to which the resource has extra work which it can't service, often queued
+- **errors**: the count of error events
+
+
+
+
+---
+
+## Common interview issues and mitigations
+
+
+**High CPU/Memory utilization** - usually corresponds to a process that is utilizing excessive resources and starving the system.
+	**-*Troubleshooting-*** 
+	we will see evidence of this issue when using commands like `top` / `ps aux` in the cpu & mem % fields for processes. We can also see evidence of this when running overview commands like `free -h`, `mpstat -P ALL`. We may also see 'out of memory' errors when checking logs via journalctl 
+	**-*mitigations*-** 
+	> kill the process if non-critical will `kill -9  pid`
+	> if its a specific application like docker, database, etc. see if it has memory limits that can be upped/lowered to work within the system constraints
+	> supply the system with more memory/distribute the application across multiple nodes (i.e. with k8s)
+
+
+**Disk space and I/O issues** - characterized by a lack of hard storage causing performance degredation.
+	**-*Troubleshooting-*** 
+	we will see evidence of this issue when using commands like `df -h` to get storage device availability and abnormal results when running `du -h ` in particular directories. We can also see evidence of this if we run `dmesg` and see filesystem (FS) errors or `iostat -xz 1` and see disk read/write (I/O) waits.
+	**-*mitigations*-** 
+	> if logging or caching from an application is causing this we can use the `logrotate` utility to specify behavior for compressing and refreshing log directories
+	> file system errors may be resolved through running `fsck` on a target partition and remounting. 
+	> more storage can be added in to the node
+
+
+
+---
+**quick terms-**
+*full-duplex*  - bidirectional
+*half-duplex* - unidirectional
+**quick commands-**
+`ipcs` - shows shared memory segments, message queus, and semaphores
+`mkfifo` - creates a named piped
+`kill -l` - lists all signals
+`socat` - creates a socket
+`ss` - lists network sockets appending `-xln` will list unix domain sockets
+## IPC (core IPC)
+IPC is the method in which processes communicate with each other.
+
+**pipes** - pipes are commonly used for chaining commands, e.g. `cat somefile | grep 'abc'`, pipes pass information from one process to another. They are UNIDIRECTIONAL. Pipes that chain commands are called unnamed pipes, we can also create a named pipe which exists as a file on the filesystem (with the `mkfifo'` command). This allows for a more permanent piped connection
+
+**Shared memory** - Shared memory is a full-duplex IPC mechanism. It is the most efficient method of IPC since it sends no syscall to the kernel. You must be cautious using this because it can cause race conditions (read/writes at the same time). You cannot make this with commands, requires a programmatic approach.
+
+**Message queues** - these differ from application level messaging/queue services. These are created via syscall and thusly kernel managed, they are a First-in first-out way of communication, every read pops the element from the queue. Every read/write is a syscall.
+
+
+**Signal** - signals are notifications that cause an event (e.g. KILL -9 PID send signal 9 SIGKILL which kills a process, ctrl+c sends signal 2 SIGINTERRUPT), signals can be created by a user, process, or kernel. "crashout" signals 9 & 15 will cause process termination so they can not be created by a process.
+
+**sockets** - sockets (there are a few types) are essentially full-duplex pipes that allow data transfer either internally (unix domain socket) or externally (networks sockets), networks sockets allow for bidirectonal data flow between remote nodes, these are commonly called ports. domain sockets are used for local host communication and allow data  exchange between processes. All
+
+## IPC (synchronization concepts)
+**Semaphores** - semaphores are essentially integers that dictate whether a resource can be accessed by a process. semaphores restrict access to a resource to only one process but allow multiple threads to access the resource at the same time. This allows for coordination of resource access.
+
+**Mutex** - a mutex (mutual exclusion) is also a type of resource lock that allows only a single process and a single thread of that process to access a resource at a time, other processes/threads must wait for the mutex lock to release before accessing the resource. 
+
+	^SUMMARY - Mutexes ensure mutual exclusion by allowing only one thread to lock a resource at a time. Semaphores use signaling to coordinate access, enabling multiple threads to share resources.
+
+
+...
+## Sys internals
+
+
+
+
+
+
+...
+
+
+---
+## HTTP/CURL/ports
+
+
+
+
+
+
+
+---
+
+#### links
+[The TTY demystified (linusakesson.net)](https://www.linusakesson.net/programming/tty/index.php)
+
+[Linux Performance Analysis in 60,000 Milliseconds | by Netflix Technology Blog | Netflix TechBlog](https://netflixtechblog.com/linux-performance-analysis-in-60-000-milliseconds-accc10403c55)
+
+
+
+
+
+
+
+---
+---
+# Other
+
+OSI/TCP-IP
+
+port knocking for security
+
+`nohup command &` - puts the command in the background as a process (nohup sets no output + process, & commits to background)
+`command &> somefile` sets command to output to somefile not to terminal
 
 
 
