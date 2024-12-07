@@ -188,6 +188,7 @@ other_Var2='other value'
 
      - name: access the variable set above
        ansible.builtin.shell: echo "{{ foo_result }}"
+#      ^  this will show all registered fields of the variable, you can then access specific ones with something linke "{{ foo_result.stdout }}"
 ```
 
 
