@@ -759,3 +759,8 @@ we then proceed to iterate inward p1+1 & p2-1 while p1 < p2, this will allow us 
 
 
 ## Breadth first search:
+
+
+
+#_ 
+add assigning vars from list e.g. some, other, value = list1=[1,2,3]

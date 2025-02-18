@@ -4,6 +4,7 @@
 All of these concepts will (99%) be the same on any Linux distro you use.
 
 #doublecheckthegeneralknowlsedgeacrossRHEL&ubuntu
+#_lsblk+others (listing devices attached)
 
 #how to gather apt packs for offline (apt-rdepends pass to apt-get / .../cache/apt)
 
