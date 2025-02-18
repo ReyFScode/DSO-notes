@@ -3,10 +3,13 @@
 # **General knowledge (any distro)**
 All of these concepts will (99%) be the same on any Linux distro you use.
 
+<<<<<<< HEAD
 #doublecheckthegeneralknowlsedgeacrossRHEL&ubuntu
 #_lsblk+others (listing devices attached)
 
 #how to gather apt packs for offline (apt-rdepends pass to apt-get / .../cache/apt)
+=======
+>>>>>>> 5aaf4ad9fec2209fcc0502466418418ff5206baa
 
 #sourceVbash : [linux - What is the difference between executing a Bash script vs sourcing it? - Super User](https://superuser.com/questions/176783/what-is-the-difference-between-executing-a-bash-script-vs-sourcing-it)
 add eval command (runs something as if it were a command typed in)
@@ -35,6 +38,40 @@ add eval command (runs something as if it were a command typed in)
 	e.g.: 
 	- `lscpu | grep -i vulnerability | sed 's/a/b/g'` will take the output value of *lscpu* and pass it to the *grep -io* command which will do a case-insensitive search for any lines with "vulnerability" it will then pass this parsed output to the sed command and replace 'a' with 'b' giving you a final output of  all lines with the world "vulnerability" with all 'a' characters replaced with 'b'.
 
+#### **Operation mechanisms:**
+The term "operations" encompasses various methods for invoking commands, accessing variables, and performing actions in Bash.
+
+1. **Direct variable referencing** - the most simple operation this simply calls a variable, e.g.
+```
+somevar = 50 
+echo $somevar 
+#outputs 50
+```
+
+2. **subshell execution** - used to run a command in a subshell and return its output e.g.
+```
+echo date is: $(date)
+#outputs 'date is: output of the date command here'
+```
+
+3. **arithmetic expansion** - allows for bash native simple math, note that when you use this you call variables without the preceding $ e.g
+```
+number=90
+echo $((number / 2 + 3))
+#outputs 48, divides 90 by 2 and adds 3
+```
+
+4. **String manipulation operations** - allows for moderately complex string manipulation
+```
+teststr=hellogoodbye
+echo ${teststr:0:5}
+#does a slice from index 0 to 5 (exclusive), outputs hello
+
+echo ${testvar2/h/y}
+#does a replacement of h to y (sed-like syntax), outputs yellogoodbye
+```
+
+
 
 #### **Text Editors:**
    - Linux offers various text editors for editing configuration files, scripts, and documents.
@@ -49,7 +86,7 @@ add eval command (runs something as if it were a command typed in)
 
 
 
-#### **Linux environment variables**
+#### **Linux environment variables **
 
 
 
