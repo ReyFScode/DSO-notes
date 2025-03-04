@@ -15,6 +15,13 @@ add eval command (runs something as if it were a command typed in)
 - `mv [filename] [/target/dir/filename]`: Move or rename files and directories.
 - `rm [filename]`: Remove files and directories,  for directories add -r after *rm*.
 - `mkdir [dir_name]`: Create directories.
+- `mkdir -p something/{1,2,3/something_else}` - mkdir -p allows you to create a directory structure, the above command would make:
+	├── something
+	│      ├── 1
+	│      ├── 2
+	│      └── 3
+	│              └── something_else
+
 - `touch [filename]`: Create new file.
 - `pwd` : Prints the current working directory
 - `lscpu` : Prints details about the system processor architecture. 
