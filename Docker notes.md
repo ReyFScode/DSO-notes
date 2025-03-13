@@ -58,6 +58,8 @@ docker image ls -a #specify -q for quiet list
 #### 6. List All Docker Containers
 ```bash
 docker ps -a #specify -q for quiet list
+
+docker ps -a --size # adds a container size column to the output, useful for determing container size on filesystem
 ```
 #### 7. Start Docker container
 ```bash
@@ -744,3 +746,5 @@ As long as virtualization is enabled on the windows host the host can run contai
 `docker image ls --format 'ID= {{.ID}}   NAME:TAG= {{.Repository}}:{{.Tag}}'` == outputs docker image ls with only ID and name+tag in the format  *ID=something   Name:tag= something:something*
 
 `docker ps -a --format 'ID= {{.ID}}   NAME= {{.Names}}   BASE_IMAGE ={{.Image}}'` == outputs docker container info with only ID and name in the format  *ID=something   Name= something*
+
+## docker storage drivers...
