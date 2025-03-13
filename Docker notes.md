@@ -748,3 +748,9 @@ As long as virtualization is enabled on the windows host the host can run contai
 `docker ps -a --format 'ID= {{.ID}}   NAME= {{.Names}}   BASE_IMAGE ={{.Image}}'` == outputs docker container info with only ID and name in the format  *ID=something   Name= something*
 
 ## docker storage drivers...
+
+```sql
+docker system df --verbose
+```
+
+to see to size of everything, including volumes, images and the cache.  add more detail on how to read
