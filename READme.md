@@ -38,7 +38,6 @@ These are all my personal study notes, I reccomend going through 2 per day each 
 
 ADD...
 
-mktemp -d
 
 :- in docker (fallback vars)
 
@@ -49,7 +48,3 @@ docker-compose ps [service list from compose file, quick summary vs docker ps -a
 docker-compose pull > just pulls images
 
 
-
-openssl s_client -connect [servername]:port > tests if port is reachable, builitin util
-
-nmap [servername/ip] scans for open ports, must be installed

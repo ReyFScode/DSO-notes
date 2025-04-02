@@ -8,6 +8,7 @@ add lsblk - devices
 #sourceVbash : [linux - What is the difference between executing a Bash script vs sourcing it? - Super User](https://superuser.com/questions/176783/what-is-the-difference-between-executing-a-bash-script-vs-sourcing-it)
 add eval command (runs something as if it were a command typed in)
 #### **Basic Commands / operators:**
+**commands**
 - `ls`: List directory contents, specify `-al` for a more detailed view.
 - `du -h`: Displays the disk usage of files and directories (in human readable format). Example: `du -h /path/to/directory` displays disk usage of a target directory  in human-readable format.
 - `df -h`: Shows the amount of disk space available on the host filesystem (in human readable format). Example: use `df -h` to display host disk stats in human-readable format.
@@ -25,9 +26,11 @@ add eval command (runs something as if it were a command typed in)
 - `touch [filename]`: Create new file.
 - `pwd` : Prints the current working directory
 - `lscpu` : Prints details about the system processor architecture. 
+- `nproc` : simply prints the number of logical cpus the system has.
 - `echo "something here"`: Prints text to stdout (console).
 - `cat / cat -b` : gets the contents of a file, -b is used to add line numbers
 
+**operators**
 - `>> / >`: Operator used to pipe output to a file (called output redirection, can be an existing file or new file) can be used with commands or with echo. It is important to note that **>>** will append text to the end of the file whilst **>** will overwrite the file so be careful. 
 	e.g.:
 	- `echo "hello world" >> new.txt` will append "hello world" to a file called new.txt, if it doesn't exist new.txt will be created.
@@ -39,185 +42,27 @@ add eval command (runs something as if it were a command typed in)
 	e.g.: 
 	- `lscpu | grep -i vulnerability | sed 's/a/b/g'` will take the output value of *lscpu* and pass it to the *grep -io* command which will do a case-insensitive search for any lines with "vulnerability" it will then pass this parsed output to the sed command and replace 'a' with 'b' giving you a final output of  all lines with the world "vulnerability" with all 'a' characters replaced with 'b'.
 
-#### **Operation mechanisms:**
-The term "operations" encompasses various methods for invoking commands, accessing variables, and performing actions in Bash.
 
-1. **Direct variable referencing** - the most simple operation this simply calls a variable, e.g.
-```
-somevar = 50 
-echo $somevar 
-#outputs 50
-```
+#### **More advanced / useful Commands:**
+- `mktemp -d    /     mktemp --tmpdir=/some/path`: used to create a temporary directory (looks something like /tmp/tmp.iZFg0nVSxw), -d will create the directory in /tmp --tmpdir= will place the directory in a specified location. e.g `mktemp --tmpdir="$(pwd)"` will create the directory in the current working directory as specified by the pwd command.
+  
+- `openssl s_client -connect [serverName/IP:port]`: built-in to most linux systems, can be used to test if target server port is reachable and reports on it, useful for testing stuff like LDAP (389), ssh (22), and database ports (e.g mysql=3306). 
+  **Note** that the intention of the `openssl s_client` command is primarily used to test and debug SSL/TLS connections. It connects to a server over SSL/TLS and provides detailed information about the SSL/TLS handshake, including certificates, supported ciphers, and encryption details. This makes it useful for testing **secure connections** (i.e., ports that use SSL/TLS like HTTPS, IMAPS, SMTPS, etc.).
+  
+- `nohup [command] &` - runs a command in the background as a process giving it a PID and appending its output to a file called nohup.out, e.g. `nohup echo 'hi' ; sleep 10 &` runs this in the background (can be seen with ps aux), and appends the output 'hi' to the nohup.out file in the present working directory. will indicate when process terminates.
+  
 
-2. **subshell execution** - used to run a command in a subshell and return its output e.g.
-```
-echo date is: $(date)
-#outputs 'date is: output of the date command here'
-```
-
-3. **arithmetic expansion** - allows for bash native simple math, note that when you use this you call variables without the preceding $ e.g
-```
-number=90
-echo $((number / 2 + 3))
-#outputs 48, divides 90 by 2 and adds 3
-```
-
-4. **String manipulation operations** - allows for moderately complex string manipulation
-```
-teststr=hellogoodbye
-echo ${teststr:0:5}
-#does a slice from index 0 to 5 (exclusive), outputs hello
-
-echo ${testvar2/h/y}
-#does a replacement of h to y (sed-like syntax), outputs yellogoodbye
-```
-
-
-
-#### **Text Editors:**
-   - Linux offers various text editors for editing configuration files, scripts, and documents.
-   - Common text editors include Vi, Vim, Nano, and Emacs. The core editors you will most likely encounter are Vi/Vim and Nano.
-
-**Core Editor usage:**
-   - **Vi/Vim:** Vi is not fun, you can use the same save/discard instructions as you would for vim but if you have to pick between Vi and Vim....use Vim...take my word on that. Install vim using `apt-get install vim/yum install nano`(distro dependent).  Use `vim [filename]` command to open Vim editor. Press `i` to enter insert mode, make changes, then press `Esc` followed by `:wq` to save and exit, or use `Esc` followed by `:q!` to discard changes.
-   - **Nano:** This is probably the most user friendly editor. Install nano using `apt-get install nano/yum install nano` (distro dependent). After installation use `nano [filename]` to enter the nano editor, use `ctrl+x + y` to save changes and `ctrl+x + n` to not save.
-
-
-#### **Linux networking basics**
-
-
-
-#### **Linux environment variables **
-
-
-
-
-# Core OS terminology
-
-**heap** - segment of memory that can be controlled dynamically, essentially a free pool of memory that can run your application.
-
-**stack** - segment of memory where specific data like local variables or function calls gets added and removed in "last in, first out"
-
-**process** - refers to a current program under execution, linux processes run isolated in the background so they do not interrupt each others execution, we can view them with the `ps aux` command. **Everything running in Linux is considered a process.**
-
-**Service** - refers to a process that are managed by the service manager (e.g. systemd), Services are triggered by the service manager based on certain events or conditions (e.g., at boot, shutdown, on-demand, or at specific times). For example, a service may start automatically when the system boots (e.g., `sshd` for SSH access), or it may start on a timer, or be manually started by the user. Services are a way we ensure particular critical processes that are important for the system are always running when necessary.
-
-**threads** - a thread is a lightweight process, processes can create threads to do work quickly and concurrently we can see threads per process in the nlwp field when we run `ps aux -L`.Threads will share the same resources and memory as the process that spawned them.
-
-**syscall** - procedure that an application invokes to make calls from the user space to the kernel space to perform a task. e.g. for vim to open a file it must make an open() system call to the kernel to perform that task.
-
-**hardlink** - a hardlink is a a directory entry that points to a selected file, if the file is deleted its data still exists in the hardlink, and data changes in one are reflected in the other ala bindmount. They share the indode number of their link source so they are resource efficient. they cannot span filesystems. created with the `ln` command, often used for backup systems since they perserve the data of their origin file but do not take up additional disk space
-
-**softlink** - a soflink is also a symbolic link to a file but it has its own inode assignment, can span filesystems. if the source file is deleted the link file "dangles" and points to nothing. created with `ln -s`. we often softlink applications to /bin when we want them to be available by command.
-
-**inode** - unix data struct that contains metadata about the file.
-
-
----
-# The boot process
-
-1- power on initiates BIOS/UEFI firmware (uefi is more common nowadays) to load from ROM.
-
-2- BIOS/UEFI runs the POST check, simply a check to ensure all hardware is baseline functional and responds to power. POST errors will be piped to the screen/shown through light flashes on the physical device.
-
-2- UEFI (reads from partition table) or BIOS (reads from master boot record), searches for a disk with a boot partition. If a hard drive with a boot partition is found it loads the bootloader from this partition into memory
-
-3- the bootloader (commonly GRUB2) is then responsible for loading the OS kernel into the computers memory
-
-4- once the kernel is loaded is takes control of system resources and begins to initialize the OS. To assist with this it sets up an initial ramdisk which is a temporary filesystem in memory.
-
-5- The initialization process starts by loading device drivers and running secondary hardware checks, then it mounts the root filesystem, next it starts the master init process (often systemd).
-
-6- `systemd` handles loading daemons (and starts them if the unit file specifies), configures networking, and low-level tasks, preparing the system to the specified start target (graphical, multi-user, etc.).the OS is now live and the system is ready.
-
-
-
-
----
-# Systemd
-
-**terminology**: 
-
-- **Target**  
-A target in `systemd` is a grouping of unit files that allows the system to reach a specific state or mode. Each target defines a boot goal, such as reaching a basic system state, a multi-user state, or a graphical interface. For example, `default.target` is often set to a multi-user or graphical target by default, while `graphical.target` includes all necessary services to support a graphical user interface in addition to standard services.
-
-- **Service (daemon)**  
-A service (or daemon) is a process that `systemd` can manage, normally loaded at boot. Services may be configured to run automatically at boot or to start upon specific triggers or conditions, like a manual start. These services often run in the background, handling system tasks such as logging or network management.
-
-- **Unit file**  
-A unit file in `systemd` is a configuration file that describes a resource managed by `systemd`, such as a service, mount point, or target. Unit files specify details like dependencies, startup order, and conditions under which a service or target should start. They contain key information for `systemd` to control and manage various system components.
-
-
----
-# kernel / user space
-
-**What is kernel space:**  
-Kernel space is the memory area where the kernel (the core of the operating system) operates and manages system resources directly. Processes in kernel space have full, unrestricted access to hardware resources, which allows the kernel to perform low-level tasks such as process management, memory management, and hardware interactions. Only the kernel and its privileged operations execute in kernel space, ensuring system stability and security.
-
-**What is user space:**  
-User space is the area of the operating system where user applications run and interact with the OS through GUIs, terminals, or command-line interfaces. Programs in user space operate with limited privileges and access representations or abstractions of kernel-space resources rather than directly accessing them. This separation protects the system by isolating user applications from critical system functions.
-
-**How user space communicates with kernel space:**  
-User space communicates with kernel space primarily through system calls (syscalls) — predefined functions provided by the kernel that enable user processes to request services like file operations, process control, or memory management. Common examples include `fork()`, `read()`, `write()`, and `kill()`. This controlled access helps prevent unauthorized or harmful modifications to the core of the OS, maintaining system integrity and security.
-
-
-
----
-# File Descriptors
- 
-In Linux, everything is treated as a file. Because of this, processes have an easy way to interact with system objects. File descriptors (FDs) are non-negative integers used by processes to manage file access, as well as handle input and output. Each process has its own file descriptor table, which is associated with its PID.
-
-The most well-known file descriptors are:
-
-- **0** - stdin
-- **1** - stdout
-- **2** - stderr
-
-When a new process is created, it inherits the standard-stream file descriptors (0,1,2) from its parent, but it can also open additional files, which are assigned the next available non-negative integer as its file descriptor from its table. The number of file descriptors a process can have in its table is limited and can be viewed with `ulimit -n`.
-
-Since EVERYTHING is a file, FDs can be assigned to ANYTHING that needs to be opened/interacted with: files, sockets, pipes, devices, etc. Even stdin, stdout, and stderr are references to data streams, represented as files (STDIN_FILENO, STDOUT_FILENO, and STDERR_FILENO).
-
-we know the /proc directory contains data/info on all processes so to see the associated file descriptors for a PID we can simply run (to show the links that the file descriptors have made to opened files) ls -l /proc/PID/fd.
-
-
-
-
----
-# Process management
- 
- Processes are instances of a running program, the process encompasses the entire execution context (current state, resource usage, etc.). Every process in linux is assigned a unique PID.
-
-**Core process terminology:**
-- **Parent:** The process that creates (or spawns) another process. It has control over and can communicate with the child processes it creates.
-- **Child:** A process that is created by another process (the parent). It inherits some of the parent’s environment and runs as a separate instance under the parent’s control.
-- **Exit Status:** A code returned by a process upon its completion, indicating success or failure. A status of `0` usually signifies success, while any non-zero value indicates an error or specific exit condition.
-- **PID:** Stands for Process ID, a unique numerical identifier assigned by the operating system to each running process for tracking and management.
-
-**Process states**:
-A process can be in one of 4 states: 
-- *Running*: The process is actively using the CPU.
-- *sleeping*: The process is waiting for some event (like I/O) or free resources to complete.
-- *Stopped*: The process has been stopped, usually by a signal.
-- *Zombie*: The process has completed execution but still has an entry in the process table. (More on this below)
-
-
-**Zombie Processes:**
-"When a process dies on Linux, it isn't all removed from memory immediately -- its process descriptor stays in memory (the process descriptor only takes a tiny amount of memory). The process's status becomes EXIT_ZOMBIE and the process's parent is notified that its child process has died with the SIGCHLD signal. The parent process is then supposed to execute the wait() system call to read the dead process's exit status and other information. This allows the parent process to get information from the dead process. After wait() is called, the zombie process is completely removed from memory...This normally happens very quickly, so you won't see zombie processes accumulating on your system. However, if a parent process isn't programmed properly and never calls wait(), its zombie children will stick around in memory until they're cleaned up."[What Is a "Zombie Process" on Linux? (howtogeek.com)](https://www.howtogeek.com/119815/htg-explains-what-is-a-zombie-process-on-linux/)
-
-"Zombie processes don't use up any system resources. (Actually, each one uses a very tiny amount of system memory to store its process descriptor.) However, each zombie process retains its process ID (PID). Linux systems have a finite number of process IDs -- 32767 by default on 32-bit systems. If zombies are accumulating at a very quick rate -- for example, if improperly programmed server software is creating zombie processes under load -- the entire pool of available PIDs will eventually become assigned to zombie processes, preventing other processes from launching"
 
 ---
 # Troubleshooting best practices/essential high level commands
 
-running commands with &, nohup, or & + nohup:
-
 ***Essential troubleshooting comms (first 60 seconds)***
 some of these require the sysstat package to be installed, if that is required an * will be next to the command.
 
-- `uname -a ; ip a ; lscpu` - This is my contribution, this will give you the system name, kernel version, CPU architecture (x86/86_64), and the ip address and network interfaces for the system, and the number of logical cpus on the machine (important for ensuring you know if saturation is occurring).
+- `uname -a ; ip a ; nproc / lscpu` - This is my contribution, this will give you the system name, kernel version, CPU architecture (x86/86_64), and the ip address and network interfaces for the system, and the number of logical cpus on the machine (important for ensuring you know if saturation is occurring). nproc will give a single number, lscpu will give an in-depth cpu summary, up to you which to use.
 
 
-- `df -h`  - shows disk space across devices
+- `df -h --total`  - shows disk space across devices, -h makes sizes human readable and --total is an option to provide a full space summary at the end.
 
 
 - `free -wh` - this command prints a memory usage snapshot, the main thing we are looking at here is that 'free' isn't close to 0, ~0 will indicate that we are low/out of memory space. -w is for wide output (more detailed), -h is for human readable.
@@ -228,7 +73,7 @@ some of these require the sysstat package to be installed, if that is required a
 $ uptime 
 23:51:26 up 21:31, 1 user, load average: 30.02, 26.43, 19.02
 ```
-While the time the system has been up can be a valuable metric the load averages are a very useful tidbit, load averages are the averages of load over 1,5,and 15 minutes. The load averages are given as raw values, and they represent the _number of processes waiting for CPU time_. A load average value of 30.02 means that, on average, there are about 30 processes waiting for CPU resources in the last minute. A value < the amount of cores indicates that there is no overload and thusly no waiting processes. This is not the best way of checking this, vmstat is better.
+While the time the system has been up can be a valuable metric the load averages are a very useful tidbit, load averages are the averages of load over 1,5,and 15 minutes. The load averages are given as raw values, and they represent the _number of processes waiting for CPU time_. A load average value of 30.02 means that, on average, there are about 30 processes waiting for CPU resources in the last minute. A value < the amount of logical CPUS indicates that there is no overload and thusly no waiting processes. This is not the best way of checking this, vmstat is better.
 
 
 - `dmesg -H | tail [-x]` / `dmesg -H | less` - the dmesg command allows us to read system messages, when we say system messages we mean very low level messages from the kernel ring buffer.. Running `dmesg -H | tail ` will give us the last 10 system messages, we can get more by specifying e.g. -20 to get the last 20, piping to less will allow us to use the enter key to scroll through all messages.
@@ -343,7 +188,7 @@ procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
 -zv : `nc -zv google.com 443` will ping google.com at port 443, useful for testing open ports, we can also use this for port scanning by specifying a port range e.g `nc -zv localhost 1-10000`
 -l : `nc -lv 1234` sets up listening on target port
 
-`nmap IP -p-` - this command (nmap must be installed) invokes the nmap utility to scan a target IP for all open ports
+`nmap IP   /    nmap IP -p-` - this command (nmap must be installed) invokes the nmap utility to scan a target IP for all open ports (nmap alone does a scan for a commonly used set of ports (quicker), -p- scans all ports (longer/more in depth))
 
 `mtr IP` - mtr is like ping and traceroute had a baby, we get packet/accessibility information plus the hops to the target. very useful
 
@@ -355,6 +200,185 @@ for i in $(find ./*); do echo $i | grep 'mc' ; done
 ```
 the above iterates through every object in the current directory and appends it to a file, we can then operate on this file if needed, we can also directly grep on each object only outputting elements with 'mc'.
 
+---
+
+
+#### **Operation mechanisms:**
+The term "operations" encompasses various methods for invoking commands, accessing variables, and performing actions in Bash.
+
+1. **Direct variable referencing** - the most simple operation this simply calls a variable, e.g.
+```
+somevar = 50 
+echo $somevar 
+#outputs 50
+```
+
+2. **subshell execution** - used to run a command in a subshell and return its output e.g.
+```
+echo date is: $(date)
+#outputs 'date is: output of the date command here'
+```
+
+3. **arithmetic expansion** - allows for bash native simple math, note that when you use this you call variables without the preceding $ e.g
+```
+number=90
+echo $((number / 2 + 3))
+#outputs 48, divides 90 by 2 and adds 3
+```
+
+4. **String manipulation operations** - allows for moderately complex string manipulation
+```
+teststr=hellogoodbye
+echo ${teststr:0:5}
+#does a slice from index 0 to 5 (exclusive), outputs hello
+
+echo ${testvar2/h/y}
+#does a replacement of h to y (sed-like syntax), outputs yellogoodbye
+```
+
+
+---
+
+#### **Text Editors:**
+   - Linux offers various text editors for editing configuration files, scripts, and documents.
+   - Common text editors include Vi, Vim, Nano, and Emacs. The core editors you will most likely encounter are Vi/Vim and Nano.
+
+**Core Editor usage:**
+   - **Vi/Vim:** Vi is not fun, you can use the same save/discard instructions as you would for vim but if you have to pick between Vi and Vim....use Vim...take my word on that. Install vim using `apt-get install vim/yum install nano`(distro dependent).  Use `vim [filename]` command to open Vim editor. Press `i` to enter insert mode, make changes, then press `Esc` followed by `:wq` to save and exit, or use `Esc` followed by `:q!` to discard changes.
+   - **Nano:** This is probably the most user friendly editor. Install nano using `apt-get install nano/yum install nano` (distro dependent). After installation use `nano [filename]` to enter the nano editor, use `ctrl+x + y` to save changes and `ctrl+x + n` to not save.
+
+
+#### **Linux networking basics**
+
+
+
+#### **Linux environment variables **
+
+
+
+
+# Core OS/Hardware terminology
+***OS terminology***
+**heap** - segment of memory that can be controlled dynamically, essentially a free pool of memory that can run your application.
+
+**stack** - segment of memory where specific data like local variables or function calls gets added and removed in "last in, first out"
+
+**process** - refers to a current program under execution, linux processes run isolated in the background so they do not interrupt each others execution, we can view them with the `ps aux` command. **Everything running in Linux is considered a process.**
+
+**Service** - refers to a process that are managed by the service manager (e.g. systemd), Services are triggered by the service manager based on certain events or conditions (e.g., at boot, shutdown, on-demand, or at specific times). For example, a service may start automatically when the system boots (e.g., `sshd` for SSH access), or it may start on a timer, or be manually started by the user. Services are a way we ensure particular critical processes that are important for the system are always running when necessary.
+
+**threads** - a thread is a lightweight process, processes can create threads to do work quickly and concurrently we can see threads per process in the nlwp field when we run `ps aux -L`.Threads will share the same resources and memory as the process that spawned them.
+
+**syscall** - procedure that an application invokes to make calls from the user space to the kernel space to perform a task. e.g. for vim to open a file it must make an open() system call to the kernel to perform that task.
+
+**hardlink** - a hardlink is a a directory entry that points to a selected file, if the file is deleted its data still exists in the hardlink, and data changes in one are reflected in the other ala bindmount. They share the indode number of their link source so they are resource efficient. they cannot span filesystems. created with the `ln` command, often used for backup systems since they perserve the data of their origin file but do not take up additional disk space
+
+**softlink** - a soflink is also a symbolic link to a file but it has its own inode assignment, can span filesystems. if the source file is deleted the link file "dangles" and points to nothing. created with `ln -s`. we often softlink applications to /bin when we want them to be available by command.
+
+**inode** - unix data struct that contains metadata about the file.
+
+***hardware terminology***
+**CPU** - central processing unit, control unit for computer, normally indicated by the term socket (place where the cpu goes)
+
+**core** - independent processing component that comprises a CPU, there can be multiple
+
+**Thread (CPU context)** - instructional pathway for CPU core, there can be multiple
+
+**logical cpus** - usually the metric that is used to determine how many cpus a system has, gotten by multiplying sockets x cores per socket x threads per core, e.g. two cpu sockets with 4 cores per socket and 2 threads per core gives us 16 logical cpus 
+
+
+---
+# The boot process
+
+1- power on initiates BIOS/UEFI firmware (uefi is more common nowadays) to load from ROM.
+
+2- BIOS/UEFI runs the POST check, simply a check to ensure all hardware is baseline functional and responds to power. POST errors will be piped to the screen/shown through light flashes on the physical device.
+
+2- UEFI (reads from partition table) or BIOS (reads from master boot record), searches for a disk with a boot partition. If a hard drive with a boot partition is found it loads the bootloader from this partition into memory
+
+3- the bootloader (commonly GRUB2) is then responsible for loading the OS kernel into the computers memory
+
+4- once the kernel is loaded is takes control of system resources and begins to initialize the OS. To assist with this it sets up an initial ramdisk which is a temporary filesystem in memory.
+
+5- The initialization process starts by loading device drivers and running secondary hardware checks, then it mounts the root filesystem, next it starts the master init process (often systemd).
+
+6- `systemd` handles loading daemons (and starts them if the unit file specifies), configures networking, and low-level tasks, preparing the system to the specified start target (graphical, multi-user, etc.).the OS is now live and the system is ready.
+
+
+
+
+---
+# Systemd
+
+**terminology**: 
+
+- **Target**  
+A target in `systemd` is a grouping of unit files that allows the system to reach a specific state or mode. Each target defines a boot goal, such as reaching a basic system state, a multi-user state, or a graphical interface. For example, `default.target` is often set to a multi-user or graphical target by default, while `graphical.target` includes all necessary services to support a graphical user interface in addition to standard services.
+
+- **Service (daemon)**  
+A service (or daemon) is a process that `systemd` can manage, normally loaded at boot. Services may be configured to run automatically at boot or to start upon specific triggers or conditions, like a manual start. These services often run in the background, handling system tasks such as logging or network management.
+
+- **Unit file**  
+A unit file in `systemd` is a configuration file that describes a resource managed by `systemd`, such as a service, mount point, or target. Unit files specify details like dependencies, startup order, and conditions under which a service or target should start. They contain key information for `systemd` to control and manage various system components.
+
+
+---
+# kernel / user space
+
+**What is kernel space:**  
+Kernel space is the memory area where the kernel (the core of the operating system) operates and manages system resources directly. Processes in kernel space have full, unrestricted access to hardware resources, which allows the kernel to perform low-level tasks such as process management, memory management, and hardware interactions. Only the kernel and its privileged operations execute in kernel space, ensuring system stability and security.
+
+**What is user space:**  
+User space is the area of the operating system where user applications run and interact with the OS through GUIs, terminals, or command-line interfaces. Programs in user space operate with limited privileges and access representations or abstractions of kernel-space resources rather than directly accessing them. This separation protects the system by isolating user applications from critical system functions.
+
+**How user space communicates with kernel space:**  
+User space communicates with kernel space primarily through system calls (syscalls) — predefined functions provided by the kernel that enable user processes to request services like file operations, process control, or memory management. Common examples include `fork()`, `read()`, `write()`, and `kill()`. This controlled access helps prevent unauthorized or harmful modifications to the core of the OS, maintaining system integrity and security.
+
+
+
+---
+# File Descriptors
+ 
+In Linux, everything is treated as a file. Because of this, processes have an easy way to interact with system objects. File descriptors (FDs) are non-negative integers used by processes to manage file access, as well as handle input and output. Each process has its own file descriptor table, which is associated with its PID.
+
+The most well-known file descriptors are:
+
+- **0** - stdin
+- **1** - stdout
+- **2** - stderr
+
+When a new process is created, it inherits the standard-stream file descriptors (0,1,2) from its parent, but it can also open additional files, which are assigned the next available non-negative integer as its file descriptor from its table. The number of file descriptors a process can have in its table is limited and can be viewed with `ulimit -n`.
+
+Since EVERYTHING is a file, FDs can be assigned to ANYTHING that needs to be opened/interacted with: files, sockets, pipes, devices, etc. Even stdin, stdout, and stderr are references to data streams, represented as files (STDIN_FILENO, STDOUT_FILENO, and STDERR_FILENO).
+
+we know the /proc directory contains data/info on all processes so to see the associated file descriptors for a PID we can simply run (to show the links that the file descriptors have made to opened files) ls -l /proc/PID/fd.
+
+
+
+
+---
+# Process management
+ 
+ Processes are instances of a running program, the process encompasses the entire execution context (current state, resource usage, etc.). Every process in linux is assigned a unique PID.
+
+**Core process terminology:**
+- **Parent:** The process that creates (or spawns) another process. It has control over and can communicate with the child processes it creates.
+- **Child:** A process that is created by another process (the parent). It inherits some of the parent’s environment and runs as a separate instance under the parent’s control.
+- **Exit Status:** A code returned by a process upon its completion, indicating success or failure. A status of `0` usually signifies success, while any non-zero value indicates an error or specific exit condition.
+- **PID:** Stands for Process ID, a unique numerical identifier assigned by the operating system to each running process for tracking and management.
+
+**Process states**:
+A process can be in one of 4 states: 
+- *Running*: The process is actively using the CPU.
+- *sleeping*: The process is waiting for some event (like I/O) or free resources to complete.
+- *Stopped*: The process has been stopped, usually by a signal.
+- *Zombie*: The process has completed execution but still has an entry in the process table. (More on this below)
+
+
+**Zombie Processes:**
+"When a process dies on Linux, it isn't all removed from memory immediately -- its process descriptor stays in memory (the process descriptor only takes a tiny amount of memory). The process's status becomes EXIT_ZOMBIE and the process's parent is notified that its child process has died with the SIGCHLD signal. The parent process is then supposed to execute the wait() system call to read the dead process's exit status and other information. This allows the parent process to get information from the dead process. After wait() is called, the zombie process is completely removed from memory...This normally happens very quickly, so you won't see zombie processes accumulating on your system. However, if a parent process isn't programmed properly and never calls wait(), its zombie children will stick around in memory until they're cleaned up."[What Is a "Zombie Process" on Linux? (howtogeek.com)](https://www.howtogeek.com/119815/htg-explains-what-is-a-zombie-process-on-linux/)
+
+"Zombie processes don't use up any system resources. (Actually, each one uses a very tiny amount of system memory to store its process descriptor.) However, each zombie process retains its process ID (PID). Linux systems have a finite number of process IDs -- 32767 by default on 32-bit systems. If zombies are accumulating at a very quick rate -- for example, if improperly programmed server software is creating zombie processes under load -- the entire pool of available PIDs will eventually become assigned to zombie processes, preventing other processes from launching"
 
 ---
 
