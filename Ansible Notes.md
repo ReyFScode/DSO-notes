@@ -293,7 +293,7 @@ Ansible roles are a way we can organize playbooks and create reusable task-sets 
 By default roles look in /etc/ansible/roles so in our ansible directory we create a folder "roles", in this folder we create a folder (named whatever the role should be called e.g. some_role), and inside that a folder called tasks. so we have /etc/ansible/roles/some_role/tasks , inside the tasks folder we put a file called main.yml, we can input the tasks starting at space 0, this is useful because it allows you to not have to worry about spacing + allows for you to create reusable task modules.
 
 ```yaml
-# /etc/ansible/some_Role/tasks/main.yml
+# /etc/ansible/roles/some_Role/tasks/main.yml
 - name: Reboot machine
   ansible.windows.win_reboot:
     test_command: echo 1
