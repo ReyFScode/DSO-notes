@@ -38,6 +38,7 @@ These are all my personal study notes, I reccomend going through 2 per day each 
 
 ADD...
 
+linux --    [command] | tee somefile.txt    - streams output to console and file simultaneously 
 
 :- in docker (fallback vars)
 
