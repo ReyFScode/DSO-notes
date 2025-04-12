@@ -3,10 +3,36 @@
 # **General knowledge (any distro)**
 All of these concepts will (99%) be the same on any Linux distro you use.
 
-add lsblk - devices
+# Core OS/Hardware terminology
+***OS terminology***
+**heap** - segment of memory that can be controlled dynamically, essentially a free pool of memory that can run your application.
 
-#sourceVbash : [linux - What is the difference between executing a Bash script vs sourcing it? - Super User](https://superuser.com/questions/176783/what-is-the-difference-between-executing-a-bash-script-vs-sourcing-it)
-add eval command (runs something as if it were a command typed in)
+**stack** - segment of memory where specific data like local variables or function calls gets added and removed in "last in, first out"
+
+**process** - refers to a current program under execution, linux processes run isolated in the background so they do not interrupt each others execution, we can view them with the `ps aux` command. **Everything running in Linux is considered a process.**
+
+**Service** - refers to a process that are managed by the service manager (e.g. systemd), Services are triggered by the service manager based on certain events or conditions (e.g., at boot, shutdown, on-demand, or at specific times). For example, a service may start automatically when the system boots (e.g., `sshd` for SSH access), or it may start on a timer, or be manually started by the user. Services are a way we ensure particular critical processes that are important for the system are always running when necessary.
+
+**threads** - a thread is a lightweight process, processes can create threads to do work quickly and concurrently we can see threads per process in the nlwp field when we run `ps aux -L`.Threads will share the same resources and memory as the process that spawned them.
+
+**syscall** - procedure that an application invokes to make calls from the user space to the kernel space to perform a task. e.g. for vim to open a file it must make an open() system call to the kernel to perform that task.
+
+**hardlink** - a hardlink is a a directory entry that points to a selected file, if the file is deleted its data still exists in the hardlink, and data changes in one are reflected in the other ala bindmount. They share the indode number of their link source so they are resource efficient. they cannot span filesystems. created with the `ln` command, often used for backup systems since they perserve the data of their origin file but do not take up additional disk space
+
+**softlink** - a soflink is also a symbolic link to a file but it has its own inode assignment, can span filesystems. if the source file is deleted the link file "dangles" and points to nothing. created with `ln -s`. we often softlink applications to /bin when we want them to be available by command.
+
+**inode** - unix data struct that contains metadata about the file.
+
+***hardware terminology***
+**CPU** - central processing unit, control unit for computer, normally indicated by the term socket (place where the cpu goes)
+
+**core** - independent processing component that comprises a CPU, there can be multiple
+
+**Thread (CPU context)** - instructional pathway for CPU core, there can be multiple
+
+**logical cpus** - usually the metric that is used to determine how many cpus a system has, gotten by multiplying sockets x cores per socket x threads per core, e.g. two cpu sockets with 4 cores per socket and 2 threads per core gives us 16 logical cpus 
+
+---
 #### **Basic Commands / operators:**
 **commands**
 - `ls`: List directory contents, specify `-al` for a more detailed view.
@@ -201,7 +227,38 @@ for i in $(find ./*); do echo $i | grep 'mc' ; done
 the above iterates through every object in the current directory and appends it to a file, we can then operate on this file if needed, we can also directly grep on each object only outputting elements with 'mc'.
 
 ---
+## SystemD
+**What is it?**
+Systemd is one of the most common init systems and system management programs used in modern Linux distributions. It functions as the first userspace process started by the kernel during the boot process (typically PID 1). Systemd is responsible for initializing the system, starting and managing services (via unit files), configuring low-level system components like logging and networking, and ultimately bringing the system to a specified target state (e.g., `graphical.target` or `multi-user.target`).
+While the system is running, systemd continues to manage processes it directly started, supervise services, log events (via `journald`), and provide interfaces for controlling system state — such as shutdown, reboot, or sleep.
+However, **systemd does not manage**:
 
+-Child processes of daemons (those are the responsibility of the service itself)
+    
+-User-launched processes (e.g., programs run from a terminal)
+    
+Those processes still exist within the system’s process tree but fall outside of systemd’s direct supervision.
+
+## Terminology**: 
+- **Target**  
+A target in `systemd` is a grouping of unit files that allows the system to reach a specific state or mode. Each target defines a boot goal, such as reaching a basic system state, a multi-user state, or a graphical interface. For example, `default.target` is often set to a multi-user or graphical target by default, while `graphical.target` includes all necessary services to support a graphical user interface in addition to standard services.
+
+- **Service (daemon)**  
+A service (or daemon) is a process that `systemd` can manage, normally loaded at boot. Services may be configured to run automatically at boot or to start upon specific triggers or conditions, like a manual start. These services often run in the background, handling system tasks such as logging or network management.
+
+- **Unit file**  
+A unit file in `systemd` is a configuration file that describes a resource managed by `systemd` (called a unit), units can be something such as a service, mount point, or target. Unit files specify details like dependencies, startup order, and conditions under which a service or target should start. They contain key information for `systemd` to control and manage various system components.
+## Systemd utilites:
+Systemd has a number of utilities that can be used to interact with it, the three most important are `systemctl`, `journalctl`, and `loginctl`
+
+**systemctl:** this command is used to directly manage systemd services some important syntaxes are shown below
+- `systemctl` - run raw this command shows a list of all active units
+- `systemctl --all` - shows a list of all units in any status
+- `systemctl start/stop/restart/reload [serviceName]` - allows you to start/stop/restart a service, restarting will stop & start the whole process over again, reloading allow the process to remain running and tells the system to re-read configuration files, this is used if you make changes to the service file.
+- `systemctl enable/disable [serviceName]` - allows you to enable/disable a service, enabling a service flags it so that systemd starts it at boot, disabling removes this flag
+- `systemctl status [serviceName]` - will show the status of a service (active/inactive) and tail its logs
+
+---
 
 #### **Operation mechanisms:**
 The term "operations" encompasses various methods for invoking commands, accessing variables, and performing actions in Bash.
@@ -239,7 +296,7 @@ echo ${testvar2/h/y}
 
 ---
 
-#### **Text Editors:**
+## **Text Editors:**
    - Linux offers various text editors for editing configuration files, scripts, and documents.
    - Common text editors include Vi, Vim, Nano, and Emacs. The core editors you will most likely encounter are Vi/Vim and Nano.
 
@@ -256,35 +313,6 @@ echo ${testvar2/h/y}
 
 
 
-
-# Core OS/Hardware terminology
-***OS terminology***
-**heap** - segment of memory that can be controlled dynamically, essentially a free pool of memory that can run your application.
-
-**stack** - segment of memory where specific data like local variables or function calls gets added and removed in "last in, first out"
-
-**process** - refers to a current program under execution, linux processes run isolated in the background so they do not interrupt each others execution, we can view them with the `ps aux` command. **Everything running in Linux is considered a process.**
-
-**Service** - refers to a process that are managed by the service manager (e.g. systemd), Services are triggered by the service manager based on certain events or conditions (e.g., at boot, shutdown, on-demand, or at specific times). For example, a service may start automatically when the system boots (e.g., `sshd` for SSH access), or it may start on a timer, or be manually started by the user. Services are a way we ensure particular critical processes that are important for the system are always running when necessary.
-
-**threads** - a thread is a lightweight process, processes can create threads to do work quickly and concurrently we can see threads per process in the nlwp field when we run `ps aux -L`.Threads will share the same resources and memory as the process that spawned them.
-
-**syscall** - procedure that an application invokes to make calls from the user space to the kernel space to perform a task. e.g. for vim to open a file it must make an open() system call to the kernel to perform that task.
-
-**hardlink** - a hardlink is a a directory entry that points to a selected file, if the file is deleted its data still exists in the hardlink, and data changes in one are reflected in the other ala bindmount. They share the indode number of their link source so they are resource efficient. they cannot span filesystems. created with the `ln` command, often used for backup systems since they perserve the data of their origin file but do not take up additional disk space
-
-**softlink** - a soflink is also a symbolic link to a file but it has its own inode assignment, can span filesystems. if the source file is deleted the link file "dangles" and points to nothing. created with `ln -s`. we often softlink applications to /bin when we want them to be available by command.
-
-**inode** - unix data struct that contains metadata about the file.
-
-***hardware terminology***
-**CPU** - central processing unit, control unit for computer, normally indicated by the term socket (place where the cpu goes)
-
-**core** - independent processing component that comprises a CPU, there can be multiple
-
-**Thread (CPU context)** - instructional pathway for CPU core, there can be multiple
-
-**logical cpus** - usually the metric that is used to determine how many cpus a system has, gotten by multiplying sockets x cores per socket x threads per core, e.g. two cpu sockets with 4 cores per socket and 2 threads per core gives us 16 logical cpus 
 
 
 ---
@@ -304,22 +332,6 @@ echo ${testvar2/h/y}
 
 6- `systemd` handles loading daemons (and starts them if the unit file specifies), configures networking, and low-level tasks, preparing the system to the specified start target (graphical, multi-user, etc.).the OS is now live and the system is ready.
 
-
-
-
----
-# Systemd
-
-**terminology**: 
-
-- **Target**  
-A target in `systemd` is a grouping of unit files that allows the system to reach a specific state or mode. Each target defines a boot goal, such as reaching a basic system state, a multi-user state, or a graphical interface. For example, `default.target` is often set to a multi-user or graphical target by default, while `graphical.target` includes all necessary services to support a graphical user interface in addition to standard services.
-
-- **Service (daemon)**  
-A service (or daemon) is a process that `systemd` can manage, normally loaded at boot. Services may be configured to run automatically at boot or to start upon specific triggers or conditions, like a manual start. These services often run in the background, handling system tasks such as logging or network management.
-
-- **Unit file**  
-A unit file in `systemd` is a configuration file that describes a resource managed by `systemd`, such as a service, mount point, or target. Unit files specify details like dependencies, startup order, and conditions under which a service or target should start. They contain key information for `systemd` to control and manage various system components.
 
 
 ---
