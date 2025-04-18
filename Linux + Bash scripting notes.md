@@ -1,9 +1,10 @@
 # **Linux notes (Debian + RHEL) + Bash scripting**
----
-# **General knowledge (any distro)**
-All of these concepts will (99%) be the same on any Linux distro you use.
+# **Section 1) General knowledge (any distro)**
+All of the below section concepts will (95%) be the same on any Linux distro you use.
 
-# Core OS/Hardware terminology
+---
+
+## Core OS/Hardware terminology
 ***OS terminology***
 **heap** - segment of memory that can be controlled dynamically, essentially a free pool of memory that can run your application.
 
@@ -32,7 +33,9 @@ All of these concepts will (99%) be the same on any Linux distro you use.
 
 **logical cpus** - usually the metric that is used to determine how many cpus a system has, gotten by multiplying sockets x cores per socket x threads per core, e.g. two cpu sockets with 4 cores per socket and 2 threads per core gives us 16 logical cpus 
 
+
 ---
+
 #### **Basic Commands / operators:**
 **commands**
 - `ls`: List directory contents, specify `-al` for a more detailed view.
@@ -76,10 +79,46 @@ All of these concepts will (99%) be the same on any Linux distro you use.
   **Note** that the intention of the `openssl s_client` command is primarily used to test and debug SSL/TLS connections. It connects to a server over SSL/TLS and provides detailed information about the SSL/TLS handshake, including certificates, supported ciphers, and encryption details. This makes it useful for testing **secure connections** (i.e., ports that use SSL/TLS like HTTPS, IMAPS, SMTPS, etc.).
   
 - `nohup [command] &` - runs a command in the background as a process giving it a PID and appending its output to a file called nohup.out, e.g. `nohup echo 'hi' ; sleep 10 &` runs this in the background (can be seen with ps aux), and appends the output 'hi' to the nohup.out file in the present working directory. will indicate when process terminates.
-  
 
 
 ---
+
+#### **Operation mechanisms:**
+The term "operations" encompasses various methods for invoking commands, accessing variables, and performing actions in Bash.
+
+1. **Direct variable referencing** - the most simple operation this simply calls a variable, e.g.
+```
+somevar = 50 
+echo $somevar 
+#outputs 50
+```
+
+2. **subshell execution** - used to run a command in a subshell and return its output e.g.
+```
+echo date is: $(date)
+#outputs 'date is: output of the date command here'
+```
+
+3. **arithmetic expansion** - allows for bash native simple math, note that when you use this you call variables without the preceding $ e.g
+```
+number=90
+echo $((number / 2 + 3))
+#outputs 48, divides 90 by 2 and adds 3
+```
+
+4. **String manipulation operations** - allows for moderately complex string manipulation
+```
+teststr=hellogoodbye
+echo ${teststr:0:5}
+#does a slice from index 0 to 5 (exclusive), outputs hello
+
+echo ${teststr/h/y}
+#does a replacement of h to y (sed-like syntax), outputs yellogoodbye
+```
+
+
+---
+
 # Troubleshooting best practices/essential high level commands
 
 ***Essential troubleshooting comms (first 60 seconds)***
@@ -199,10 +238,7 @@ procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
 	-*retran/s*: number of retransmissions/s
 
 
-
----
-
-## More troubleshooting commands
+## Additional troubleshooting commands
 
 `lsof` - This command shows all open files and what process they are opened by. `lsof -p [pid]` allows us to filter this and check which files are opened by a target process
 
@@ -226,97 +262,10 @@ for i in $(find ./*); do echo $i | grep 'mc' ; done
 ```
 the above iterates through every object in the current directory and appends it to a file, we can then operate on this file if needed, we can also directly grep on each object only outputting elements with 'mc'.
 
----
-## SystemD
-**What is it?**
-Systemd is one of the most common init systems and system management programs used in modern Linux distributions. It functions as the first userspace process started by the kernel during the boot process (typically PID 1). Systemd is responsible for initializing the system, starting and managing services (via unit files), configuring low-level system components like logging and networking, and ultimately bringing the system to a specified target state (e.g., `graphical.target` or `multi-user.target`).
-While the system is running, systemd continues to manage processes it directly started, supervise services, log events (via `journald`), and provide interfaces for controlling system state — such as shutdown, reboot, or sleep.
-However, **systemd does not manage**:
-
--Child processes of daemons (those are the responsibility of the service itself)
-    
--User-launched processes (e.g., programs run from a terminal)
-    
-Those processes still exist within the system’s process tree but fall outside of systemd’s direct supervision.
-
-## Terminology**: 
-- **Target**  
-A target in `systemd` is a grouping of unit files that allows the system to reach a specific state or mode. Each target defines a boot goal, such as reaching a basic system state, a multi-user state, or a graphical interface. For example, `default.target` is often set to a multi-user or graphical target by default, while `graphical.target` includes all necessary services to support a graphical user interface in addition to standard services.
-
-- **Service (daemon)**  
-A service (or daemon) is a process that `systemd` can manage, normally loaded at boot. Services may be configured to run automatically at boot or to start upon specific triggers or conditions, like a manual start. These services often run in the background, handling system tasks such as logging or network management.
-
-- **Unit file**  
-A unit file in `systemd` is a configuration file that describes a resource managed by `systemd` (called a unit), units can be something such as a service, mount point, or target. Unit files specify details like dependencies, startup order, and conditions under which a service or target should start. They contain key information for `systemd` to control and manage various system components.
-## Systemd utilites:
-Systemd has a number of utilities that can be used to interact with it, the three most important are `systemctl`, `journalctl`, and `loginctl`
-
-**systemctl:** this command is used to directly manage systemd services some important syntaxes are shown below
-- `systemctl` - run raw this command shows a list of all active units
-- `systemctl --all` - shows a list of all units in any status
-- `systemctl start/stop/restart/reload [serviceName]` - allows you to start/stop/restart a service, restarting will stop & start the whole process over again, reloading allow the process to remain running and tells the system to re-read configuration files, this is used if you make changes to the service file.
-- `systemctl enable/disable [serviceName]` - allows you to enable/disable a service, enabling a service flags it so that systemd starts it at boot, disabling removes this flag
-- `systemctl status [serviceName]` - will show the status of a service (active/inactive) and tail its logs
 
 ---
 
-#### **Operation mechanisms:**
-The term "operations" encompasses various methods for invoking commands, accessing variables, and performing actions in Bash.
-
-1. **Direct variable referencing** - the most simple operation this simply calls a variable, e.g.
-```
-somevar = 50 
-echo $somevar 
-#outputs 50
-```
-
-2. **subshell execution** - used to run a command in a subshell and return its output e.g.
-```
-echo date is: $(date)
-#outputs 'date is: output of the date command here'
-```
-
-3. **arithmetic expansion** - allows for bash native simple math, note that when you use this you call variables without the preceding $ e.g
-```
-number=90
-echo $((number / 2 + 3))
-#outputs 48, divides 90 by 2 and adds 3
-```
-
-4. **String manipulation operations** - allows for moderately complex string manipulation
-```
-teststr=hellogoodbye
-echo ${teststr:0:5}
-#does a slice from index 0 to 5 (exclusive), outputs hello
-
-echo ${testvar2/h/y}
-#does a replacement of h to y (sed-like syntax), outputs yellogoodbye
-```
-
-
----
-
-## **Text Editors:**
-   - Linux offers various text editors for editing configuration files, scripts, and documents.
-   - Common text editors include Vi, Vim, Nano, and Emacs. The core editors you will most likely encounter are Vi/Vim and Nano.
-
-**Core Editor usage:**
-   - **Vi/Vim:** Vi is not fun, you can use the same save/discard instructions as you would for vim but if you have to pick between Vi and Vim....use Vim...take my word on that. Install vim using `apt-get install vim/yum install nano`(distro dependent).  Use `vim [filename]` command to open Vim editor. Press `i` to enter insert mode, make changes, then press `Esc` followed by `:wq` to save and exit, or use `Esc` followed by `:q!` to discard changes.
-   - **Nano:** This is probably the most user friendly editor. Install nano using `apt-get install nano/yum install nano` (distro dependent). After installation use `nano [filename]` to enter the nano editor, use `ctrl+x + y` to save changes and `ctrl+x + n` to not save.
-
-
-#### **Linux networking basics**
-
-
-
-#### **Linux environment variables **
-
-
-
-
-
----
-# The boot process
+## The Linux boot process
 
 1- power on initiates BIOS/UEFI firmware (uefi is more common nowadays) to load from ROM.
 
@@ -330,7 +279,92 @@ echo ${testvar2/h/y}
 
 5- The initialization process starts by loading device drivers and running secondary hardware checks, then it mounts the root filesystem, next it starts the master init process (often systemd).
 
-6- `systemd` handles loading daemons (and starts them if the unit file specifies), configures networking, and low-level tasks, preparing the system to the specified start target (graphical, multi-user, etc.).the OS is now live and the system is ready.
+6- `systemd` handles loading daemons/services (and starts them if the unit file specifies), configures networking, and low-level tasks, preparing the system to the specified start target (graphical, multi-user, etc.).the OS is now live and the system is ready.
+
+
+---
+
+## SystemD
+**What is it?**
+Systemd is one of the most common init systems / system management programs used in modern Linux distributions. It functions as the first userspace process started by the kernel during the boot process (typically PID 1). Systemd is responsible for initializing the system, starting and managing services (via unit files), and coordinating system components like logging (`journald`) and networking (via tools like `systemd-networkd`). and ultimately bringing the system to a specified target state (e.g., `graphical.target` or `multi-user.target`).
+While the system is running, systemd continues to manage processes it directly started, supervise services, log events (via `journald`), and provide interfaces for controlling system state — such as shutdown, reboot, or sleep.
+**note:**
+
+  -**Child processes** of services are grouped and tracked by systemd via control groups (cgroups), but unless explicitly configured, systemd won't automatically manage or restart individual child processes.
+    
+  -**User-launched processes** (like ones started from a terminal or desktop environment) are outside the scope of system service management, but can be tracked via `systemd-logind` in terms of session accounting.
+
+## Terminology: 
+- **Unit file / unit**
+A unit file in `systemd` is a configuration file that describes a resource managed by `systemd` (called a unit), units can be something such as a service (process managed by systemd), mount point, or target. Unit files specify details like dependencies, startup order, and conditions under which a service or target should start. They contain key information for `systemd` to control and manage various system components.
+	**unit types:**
+		- `.socket`: manages network or IPC sockets and can start services on-demand
+		- `.timer`: replaces `cron` for scheduled tasks
+		- `.mount`: manages mount points
+		- `.target`: grouping mechanism for unit activation states
+		- `.path`: watches filesystem paths and triggers services on change
+		- `.service`: The most commonly interacted with unit, defines a long-running background process (a service) that systemd should start, manage, and optionally restart if it fails. There are different types of `.service` behaviors: *Type=simple* the default, systemd starts the process and considers it "started" as soon as the main process is launched, *Type=forking* for traditional daemons that fork into the background, *Type=oneshot* for short-lived scripts or tasks
+
+- **Service (daemon)**  
+A service (or daemon) is a process that `systemd` can manage, normally loaded at boot. Services may be configured to run automatically at boot or to start upon specific triggers or conditions, like a manual start. These services often run in the background, handling system tasks such as logging or network management.
+
+- **Target**  
+A target in `systemd` is a grouping of unit files that allows the system to reach a specific state or mode. Each target defines a boot goal, such as reaching a basic system state, a multi-user state, or a graphical interface. For example, `default.target` is often set to a multi-user or graphical target by default, while `graphical.target` includes all necessary services to support a graphical user interface in addition to standard services.
+
+ - **Drop-in**
+ a drop-in is a supplementary configuration file that will override or extend the configuration of a unit file (like a service) without modifying the original unit file itself. If a drop-in contains a section like `[Service]`, it overrides only the settings in that section, not the whole unit. Using drop-ins keeps your changes separate from system-provided files & the changes won’t be overwritten by package updates.
+ 
+## Systemd utilites:
+Systemd has a number of utilities that can be used to interact with it, the three most important are `systemctl`, `journalctl`, and `loginctl`
+
+**systemctl:** this command is used to directly manage the core systemd utility, with an emphasis on service management, some important syntaxes are shown below:
+- `systemctl` - run raw this command shows a list of all active units adding -all will show all units active/inactive
+- `systemctl --all` - shows a list of all units in any status
+- `systemctl start/stop/restart/reload [serviceName]` - allows you to start/stop/restart a service, restarting will stop & start the whole process over again, reloading allow the process to remain running and tells the system to re-read configuration files, this is used if you make changes to the service file.
+- `systemctl enable/disable [serviceName]` - allows you to enable/disable a service, enabling a service flags it so that systemd starts it at boot, disabling removes this flag
+- `systemctl status [serviceName]` - will show the status of a service (active/inactive) and tail its logs, `systemctl status` without specifying a service name will give you a snapshot of systemd's state on the system, stuff like overall state, jobs (pending activities like starting/stopping services), failed units, and control group hierarchy
+- `systemctl daemon-reload` - this command will tell systemd to load/reload all configuration files into memory, this is used when we create a new unit file or modify a unit file. Note that nothing is restarted so if we modify an existing unit file the changes will be loaded but the service will still run with the old unit file specifications until it is individually restarted/reloaded or the system reboots and systemd reinitializes all units as part of the boot process.
+- `systemctl cat [serviceName]` - shows the unit file contents, where it is located (first comment line) & associated drop-ins.
+- `systemctl edit [serviceName]` - This command lets you safely create or edit drop-in files to override or extend an existing unit (like a service) — without touching the original unit file. It opens your default text editor & creates (or edits) a file that looks something like *../override.conf* which targets the unit file and lets you specify only the parts you want to override, such as environment variables, resource limits, dependencies, or commands. To remove the override run: `sudo systemctl revert [serviceName]` It deletes the drop-in and restores the unit to its default state.
+  - *Other less-common commands* (systemctl + ) 
+	  - `mask / unmask`: masking tells systemctl to symlink the unit file to /dev/null making it unstartable unless we unmask it
+	  - `list-sockets`: shows all active sockets managed by systemd
+	  - `list-dependencies [serviceName]`: shows unit dependencies
+
+
+**journalctl:** this utility is used to interact with the systemd logging component, some important syntaxes are shown below:
+- `journalctl / journalctl -x -f -r` - `journalctl` shows all systemd logs since init. Note for below, flags can be combined (e.g. -xf):
+	- `-x` will make it verbose and add explanations where it can.
+	- `-f` will follow the logstream live (a common flag combo is -xf)
+	- `-r` will show newest logs first
+- `journalctl -u [serviceName]` - shows systemd logs for a particular service, can be combined with other flags either as a stadalone flag or in a combo (e.g. *-xfu*, *-xru*, or *-x -u*, all work)
+
+
+**loginctl:** this utility is used to interact with the systemd logging login manager component, this lets you manage user sessions and related processes; some important syntaxes are shown below:
+- `loginctl` - shows all active login sessions (alias for loginctl list-sessions)
+- `loginctl show-session [sessionNumber] -all` - used to gain comprehensive insights into a specific session, such as detailed user information, their session state, and other session-specific properties, session number can be found via the loginctl command. -all ensures even empty values are shown.
+- `loginctl show-user [username]` - You can use this command to retrieve all available information about a particular user logged into the system.
+- `loginctl list-users -H [hostname]` - Assuming systemd remote management is set up (via systemd-homed or SSH), this command allows you to inspect user information on a remote machine, which is useful for centralized management and monitoring of user sessions across a network or distributed environment without having to log directly into each server. Replace *hostname* with the remote node’s actual hostname or IP address.
+  
+---
+
+## **Text Editors:**
+   - Linux offers various text editors for editing configuration files, scripts, and documents.
+   - Common text editors include Vi, Vim, Nano, and Emacs. The core editors you will most likely encounter are Vi/Vim and Nano.
+
+**Core Editor usage:**
+   - **Vi/Vim:** Vi is not fun, you can use the same save/discard instructions as you would for vim but if you have to pick between Vi and Vim....use Vim...take my word on that. Install vim using `apt-get install vim/yum install nano`(distro dependent).  Use `vim [filename]` command to open Vim editor. Press `i` to enter insert mode, make changes, then press `Esc` followed by `:wq` to save and exit, or use `Esc` followed by `:q!` to discard changes.
+     
+   - **Nano:** This is probably the most user friendly editor. Install nano using `apt-get install nano/yum install nano` (distro dependent). After installation use `nano [filename]` to enter the nano editor, use `ctrl+x   |   y` to save changes and `ctrl+x   |   n` to not save.
+
+
+___
+
+#### **Linux networking basics**
+
+
+
+#### **Linux environment variables **
 
 
 
