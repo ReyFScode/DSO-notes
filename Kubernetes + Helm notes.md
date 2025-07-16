@@ -7,33 +7,118 @@ Kubernetes, commonly referred to as K8s, is an open-source container orchestrati
 add crictl info
 
 
-
-
 ----
 # **Installing Kubernetes (bare-metal, kubeadm) (for use with docker)**
 
 #### Installation instructions:
 This tutorial will focus on Debian based distros. Installing Kubernetes can be surprisingly daunting for newcomers, a lot of instructions online are overly convoluted, here's how to do it (you should probably make an ansible playbook to make installing it on all your Kubernetes nodes easy). If this doesn't work, installation docs are here, use most recent version: [Installing kubeadm | Kubernetes](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/)
 
-**pre-flight configs**
-Start by running this on all nodes to open the necessary ports for K8s communication: `sudo ufw allow 6443/tcp && sudo ufw allow 10250/tcp && sudo ufw allow 10255/tcp && sudo ufw allow 2379/tcp && sudo ufw allow 2380/tcp && sudo ufw allow 53/tcp && sudo ufw allow 53/udp` also ensure that the */etc/apt/keyrings* directory exists, if not make it with this command: `sudo mkdir -p -m 755 /etc/apt/keyrings`. Finally turn swapoff using this command: `sudo swapoff -a`
+## **1. pre-flight configs**
+Start by running this on all nodes to open the necessary ports for K8s communication: `sudo ufw allow 6443/tcp && sudo ufw allow 10250/tcp && sudo ufw allow 10255/tcp && sudo ufw allow 2379/tcp && sudo ufw allow 2380/tcp && sudo ufw allow 53/tcp && sudo ufw allow 53/udp` also ensure that the */etc/apt/keyrings* directory exists, if not make it with this command: `sudo mkdir -p -m 755 /etc/apt/keyrings`. 
 
-**Installation procedure**
-1. Ensure docker is installed on all your Kubernetes nodes
-2. Add the Kubernetes repository by running this command on all nodes: 
-```shell
-sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates curl gpg && curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg && echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list && sudo apt-get update
+## 2. System Preparation
+**a. Run System Update**
+```bash
+sudo apt update && sudo apt upgrade -y
 ```
 
-5. Now install kubernetes via apt and then use apt-mark to hold the packages (Ensures the packages cannot be upgraded, removed, or purged.):   `sudo apt install -y kubelet kubeadm kubectl && sudo apt-mark hold kubelet kubeadm kubectl`
-6. Optionally you can set the kubectl service to start immediately at boot with:  `sudo systemctl enable --now kubelet` (you probably want this)
 
-you can turn swap back on with:   `sudo swapon -a` , you can remove the hold from the packages with:   `sudo apt-mark unhold kubelet kubeadm kubectl`
+**b. Disable Swap**
+```bash
+sudo swapoff -a
+```
+**Why?**
+- **Kubernetes Requirement:** Kubernetes requires swap to be disabled for proper memory management.
+- **Memory Management:** Prevents the kernel from swapping memory pages to disk, ensuring that memory pressure is handled by the kubelet.
 
 
+**c. Enable Kernel IP Forwarding**
+```bash
+sudo sysctl net.ipv4.ip_forward=1
+```
+**Why?**
+- **Networking Requirement:** Allows the system to forward IPv4 packets, essential for pod-to-pod communication across nodes.
 
 
+**d. Load Kernel Modules**
+```bash
+sudo modprobe overlay
+sudo modprobe br_netfilter
+```
+**Why?**
+- **Overlay Network:** The `overlay` module supports Docker's default network driver, enabling communication between containers on different hosts.
+- **Bridge Network Filtering:** The `br_netfilter` module ensures that iptables rules are applied to bridged network traffic, crucial for Kubernetes networking.
 
+
+**e. Persist Kernel Settings**
+```bash
+echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf
+echo "overlay" | sudo tee -a /etc/modules
+echo "br_netfilter" | sudo tee -a /etc/modules
+```
+**Why?**
+- **Persistence:** Ensures that kernel settings and modules are re-applied after a reboot.
+
+
+## 3. Install Container Runtime
+**a. Install Containerd**
+
+```bash
+sudo apt install containerd -y
+```
+**Why?**
+- **Container Runtime:** `containerd` is an industry-standard core container runtime that manages the complete container lifecycle.
+
+
+**b. Configure Cgroup Driver**
+```bash
+sudo mkdir -p /etc/systemd/system/containerd.service.d
+```
+
+```bash
+cat << EOF | sudo tee /etc/systemd/system/containerd.service.d/10-kubernetes.conf
+[Service]
+ExecStartPre=/sbin/modprobe overlay
+ExecStartPre=/sbin/modprobe br_netfilter
+EOF
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart containerd
+```
+**Why?**
+- **Cgroup Driver Consistency:** Aligns the cgroup driver used by containerd with Kubernetes' expectations, ensuring consistent resource management.
+
+
+## 4. Install Kubernetes Components
+**a. Add Kubernetes APT Repository**
+```bash
+curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo tee /etc/apt/trusted.gpg.d/kubernetes.asc
+```
+
+```bash
+echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+```
+
+
+**b. Install Kubernetes Packages**
+```bash
+sudo apt update
+sudo apt install -y kubelet kubeadm kubectl
+```
+- **Kubernetes Tools:**
+    - `kubelet`: The primary node agent that runs on each node.
+    - `kubeadm`: A tool to bootstrap the Kubernetes control plane.
+    - `kubectl`: The command-line tool to interact with the Kubernetes cluster.
+
+
+**c. Mark Packages on Hold**
+```bash
+sudo apt-mark hold kubelet kubeadm kubectl
+```
+**Why?**
+- **Prevent Unwanted Upgrades:** Ensures that the Kubernetes packages are not inadvertently upgraded, which could introduce breaking changes.
 
 
 ---

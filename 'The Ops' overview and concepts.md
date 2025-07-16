@@ -91,7 +91,6 @@ To support this, an ecosystem of tools and standards has emerged—but because t
 Pure DevOps means automating the entire software lifecycle. To do that, you need people who understand specialized tools, have deep systems design knowledge, knowledge of DevOps specific strategies, and who have advanced troubleshooting and performance tuning capabilities, In my interviews with other DevOps engineers and my own experience I have found that a DevOps engineers job actually can be broken down into 3 different roles:
 
 ###### 1) **Development Efficiency Engineer**
-
 Focused on improving the speed and quality of software delivery. This includes:
 
 - Building reusable CI/CD pipelines
@@ -100,13 +99,11 @@ Focused on improving the speed and quality of software delivery. This includes:
 
 
 ###### 2) **Integrations Engineer**
-
 Thanks to their deep understanding of tooling and automation, DevOps engineers help integrate those tools into developer workflows/working alongside devs to help modernize applications.
 
 Example: GitLab uses Chef (via Omnibus) as part of its automation for installing and configuring GitLab. A DevOps engineer is the kind of person who would design and maintain that solution—bridging product and operations through automation.
 
 ###### 3) **Deployment Architect / Platform Engineer**
-
 Responsible for designing and maintaining deployment platforms such as:
 
 - Kubernetes clusters
@@ -336,13 +333,16 @@ In a mono-repo strategy, all projects or services are stored in a single reposit
 +------------------+
 ```
 
-conclusion:
+final notes:
 - **Git Flow** fits well with **multi-repo** for clear branch management but can be complex in a mono-repo setup.
 - **Trunk-Based Development** is simpler and often preferred with **mono-repo** due to its continuous integration model, but it can also work with **multi-repo** if managed carefully.
   
-  
-  
-  
+### **Git**
+This is a core concept for Devops engineers and there will be a whole note page dedicated to this please see [[GIT notes]]
+### **CI/CD**
+This is a core concept for Devops engineers and there will be a whole note page dedicated to this please see [[CI-CD & Workflow Orchestration NOTES]]
+
+
   
 ---
 # section 2 ) DataOps

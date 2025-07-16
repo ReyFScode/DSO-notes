@@ -46,6 +46,6 @@ apache
 nginx
 gunicorn
 
-**message queues/brokers**
+in mem data stores
+memchached
 redis
-
