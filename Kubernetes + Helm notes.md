@@ -4,7 +4,7 @@ Kubernetes, commonly referred to as K8s, is an open-source container orchestrati
 
 #add info on cgroups drivers / container runtimes [Configuring a cgroup driver | Kubernetes](https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/)  /   [Container Runtimes | Kubernetes](https://kubernetes.io/docs/setup/production-environment/container-runtimes/)
 
-
+add crictl info
 
 
 
@@ -61,7 +61,7 @@ you can turn swap back on with:   `sudo swapon -a` , you can remove the hold fro
 ---
 # **Key Kubernetes terms**
 
-1. **Pod**: The smallest unit of deployment in Kubernetes, representing one or more containers that are scheduled together on the same host. 
+1. **Pod**: The smallest unit of deployment in Kubernetes, representing one or more containers that are scheduled together on the same host. **Replicas** are the amount of pods in a deployment NOT number of containers since a pod can be multiple grouped containers
 
 2. **Node**: A physical or virtual machine in the Kubernetes cluster that runs containers.
 
@@ -102,6 +102,8 @@ you can turn swap back on with:   `sudo swapon -a` , you can remove the hold fro
     
 19. **Control loop:** This is the name of the process that K8s uses to manage cluster state, the control loop is essentially constantly comparing the cluster state with the desired state and performing actions that ensure the cluster is always at its desired state.
 
+20. **Manifests:** a yaml/json doc that describes the state of an object, can be anything e.g. deployment, configmap, secret, service, volume, etc. 
+
 
 
 ----
@@ -129,6 +131,8 @@ Kubernetes architecture consists of several components working together to manag
 **Node Components**:
     - **kube-proxy**: This component in Kubernetes maintains network rules on nodes to enable communication between pods and external traffic. It implements the Kubernetes service abstraction by managing network routing and load balancing. In Docker Swarm, similar functionality is provided by the built-in routing mesh, which ensures that incoming traffic is routed to the appropriate containers across the cluster.
     - **Kubelet**: more on this below
+
+---
 
 **There are also three important tools that are used to interact with/create K8s deployments:**
 
@@ -174,6 +178,8 @@ kubectl get-nodes # get nodes in the cluster, note the name of the node(s) you w
 kubectl drain [node-name] --ignore-daemonsets
 kubectl delete node [node-name]
 
+# NOTE kubectl delete can delete anything e.g. deployment/somedep, pod/somepod
+
 ```
 
 5. **De-initialize control plane ( a node that kubeadm init was run on )**
@@ -185,10 +191,15 @@ kubeadm reset # should only be run after all nodes are deleted to ensure a clean
 ```yaml
 kubectl apply -f [mainfest name.yaml]
 
-kubectl delete [object] [name] (e.g deployment test_deployment)
+#reverse with 
+kubectl delete -f [manifest_name.yaml]
+
+
  # OR you can do it in [object]/[name] format
 kubectl delete deployment/test_deployment
 ```
+
+
 
 **Cluster management commands:**
 1. **Display Kubernetes Cluster backend Information**
@@ -196,53 +207,64 @@ kubectl delete deployment/test_deployment
 kubectl cluster-info
 ```
 
-2. **List Nodes in cluster**
+2. **List objects in k8s cluster**
 ```bash
-kubectl get nodes
-kubectl get nodes -o wide #verbose get, use this
+kubectl get nodes #gets nodes
+kubectl get deployments #gets deployments
+
+OR get multiple objects with comma seperation:   nodes,pods,deployments
+
+-o wide #append to perform a verbose get, use this
+
+
+get all with: 
+  - kubectl get all
 ```
 
-3. **List Pods
+3. **Describe an object**
 ```bash
-kubectl get pods 
-kubectl get pods -o wide #verbose get, use this
-```
-
-4. **Describe an object**
-```bash
-# describe gets details about a specific k8s deployment object
+# describe gets details about a specific k8s object
 kubectl describe object/name
-#object can be pod/deployment/service...
+#object can be pod/deployment/service/node...
 ```
 
-5. **Describe active deployments**
-```
-kubectl get deployments
-kubectl get deployments -o wide # more descriptive
+4. ...
+```yaml
+...
 ```
 
-6. **Enter a Kubernetes pod**
+5. **Enter a Kubernetes pod**
 ```bash
 kubectl exec -it [pod_name] -- bash
-# -- isnt needed as of this document but soon will be required
+# used to run a new process e.g. bash seperate from containers main entrypoint command (process)
+
+kubectl attach -it [pod_name]
+# used to attach to main entrypoint process
 ```
 
-7. **Create or Apply a Configuration**
+6. **...**
 ```bash
-kubectl apply -f <configuration.yaml> # can be deployments, CNI manifests, etc. kubectl apply is a very versatile command
+...
 ```
 
-8. **Generate a deployment YAML / create a single container deployment**
+7. **Generate a deployment YAML / create a single container deployment**
 ```bash
 #deployment.ymls can be very complex and hard to remember how to write, k8s can autogenerate the .ymls with the command, we can then modify this file to customize the deployment
 kubectl create deployment [name] --image [something:something] -o yaml --dry-run=client> [somename].yml #--dry-run=client doesnt activate the deployment, just generates the yaml, if we omit this flag then the deployment will be created and go live in addition to the YAML being generated
 
-#if we omit the `-o --dry-run... >` section we can generate a deployment with specified images (can pass multiple image flags)
+# *! you can pass images with multiple flags or comma seperated e.g. --images nginx,mysql,ubuntu BUT only one port (must be added manually)
+
+#if we omit the `-o --dry-run... >` section we can start a deployment with specified images
 kubectl create deployment [name] --image [something:something]
+
+some flags:
+> --image
+> --port
+> --replicas
 
 ```
 
-9. **Generate a single container pod / create a pod YAML**
+8. **Generate a single container pod / create a pod YAML**
 ```bash
 #Pods, like deployments, can be defined via a yaml file as well, to generate a pod yaml we use kubectl run pass in pod specifications via flags like --image and then specify -o yaml + --dry-run=client
 kubectl run [container/pod name] --image [something:something] -o yaml --dry-run=client > [somename].yml
@@ -259,24 +281,26 @@ kubectl run -it [container/pod name] --image [something:something]
 --restart Always, Never, etc. # > specifies a restart policy for the pod
 
 --port 80 # > specifies a container port to expose
-
++
+--expose # actually exposes the port
+= --port 80 --expose #used in conjunction
 
 ```
 
-11. **Directly update a Kubernetes object through its manifest via your default text editor **
+9. **Directly update a Kubernetes object through its manifest via your default text editor **
 ```yaml
 kubectl edit [object: deployment, pod, etc.] [name]
 
 # will open the objects properties in yaml format, allows you to make changes that apply when the file is saved & closed
 ```
 
-13. **Scale a deployment, replica set, replication controller, or stateful set**
+10. **Scale a deployment, replica set, replication controller, or stateful set**
 ```bash
 kubectl scale [object: deployment, stateful-set, etc.] [object_name] --replicas=<replica_count>
 
-can also be set up as : kubectl scale --flags object/name (e.g deployment/nameofDeployment)
-OR
-kubectl scale object/name --flags
+can also be set up as : 
+kubectl scale --flags object/name (e.g deployment/nameofDeployment)
+
 --------------------------------------------------------------------
 
 Scale also allows users to specify one or more preconditions for the scale action.
@@ -337,7 +361,7 @@ kubectl logs pods/somepod -c containerName
 
 ```
 
-16. **get events *
+16. **get events
 ```yaml
 # you can use this command  to get cluster events, events are system occurances like failures, successes, creations, deletions, etc.
 
@@ -359,8 +383,346 @@ Options
 ```
 
 
+17. **update deployment image**
+```yaml
+#set image will change a deployments image
+kubectl set image deployment/[deployment_name] old_image=new_image:tag
+
+#e.g. kubectl set image deployment/nginx-deployment nginx=nginx:1.25
+
+```
 
 
+
+
+---
+# Understanding Deployments vs Pods
+
+### Pods
+
+- A **Pod** is the basic unit of deployment in Kubernetes.
+    
+- It consists of one or more containers that:
+    
+    - Share the same network namespace (i.e., IP address and ports)
+        
+    - Can share storage volumes
+        
+- Pods are **ephemeral**:
+    
+    - If a Pod crashes, it does **not restart automatically** unless managed by a controller. (unless restartPolicy is always/OnFailure)
+        
+    - Not ideal for production use on their own. Practically never used beyond learning/debugging
+        
+
+### Deployments
+
+- A **Deployment** is a Kubernetes controller that manages a set of Pods through a ReplicaSet.
+    
+- It ensures that the specified number of Pod replicas are running at all times.
+    
+- It supports:
+    
+    - Automatic restarts of failed Pods
+        
+    - Rolling updates
+        
+    - Rollbacks
+        
+    - Declarative updates and scaling
+        
+
+### Key Differences
+
+| Feature            | Pod                                                 | Deployment                       |
+| ------------------ | --------------------------------------------------- | -------------------------------- |
+| Resource Type      | Basic container wrapper                             | High-level controller            |
+| Restart on failure | No                                                  | Yes                              |
+| Scaling            | Manual mostly, you can create a pod manifest though | Declarative (via replicas field) |
+| Rolling Updates    | No                                                  | Yes                              |
+| Use Case           | Testing, debugging                                  | Production workloads             |
+
+
+
+
+
+
+
+---
+# Understanding Services and Service Types and How They Relate to Deployments
+
+### What is a Service?
+
+- A **Service** is an abstraction that defines a logical set of Pods and a policy to access them.
+    
+- Since Pods are dynamic and their IPs can change, Services provide a **stable endpoint** for communication.
+    
+- Services use **label selectors** to target and load-balance traffic across a group of Pods.
+    
+
+### How Services Relate to Deployments
+
+- A Deployment creates and manages Pods, and a Service exposes those Pods to other components inside or outside the cluster.
+    
+- The Service continuously discovers and forwards traffic to any Pods that match the defined selector.
+    
+
+### Service Types
+
+|Type|Description|Scope|
+|---|---|---|
+|ClusterIP|Default. Exposes the Service on an internal cluster IP.|Internal|
+|NodePort|Exposes the Service on a static port on each Node IP.|External (basic)|
+|LoadBalancer|Provisions a cloud provider load balancer.|External (cloud only)|
+|ExternalName|Maps a service name to an external DNS name.|DNS-based redirect|
+
+### Use Cases
+
+- **ClusterIP** is used for internal communication (e.g., between microservices).
+    
+- **NodePort** and **LoadBalancer** are used for exposing services to users or external systems.
+    
+- **ExternalName** is useful for referencing external APIs or databases using a consistent internal name.
+    
+
+
+
+
+
+
+
+---
+# Understanding ConfigMaps and Secrets and How They Relate to Deployments
+
+### ConfigMaps
+
+- A ConfigMap is a key-value store for **non-sensitive** configuration data.
+    
+- Common use cases include storing environment settings, URLs, file paths, and feature flags.
+    
+- Keeps configuration **external to application code** for flexibility and reuse.
+    
+
+### Secrets
+
+- A Secret is a similar key-value store, but intended for **sensitive data** such as:
+    
+    - API keys
+        
+    - Database passwords
+        
+    - TLS certificates
+        
+- Kubernetes stores Secrets in base64 format, and encryption at rest is recommended in production.
+    
+
+### Injecting into Pods
+
+1. **As environment variables**
+```
+# env-demo.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: env-demo
+spec:
+  containers:
+  - name: demo
+    image: busybox
+    command: ["sh", "-c", "env; sleep 3600"]
+
+
+    env:
+    - name: MODE
+      valueFrom:
+        configMapKeyRef:
+          name: app-config
+          key: MODE
+    - name: API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: app-secret
+          key: API_KEY
+
+```
+    
+2. **As mounted volumes**
+```
+volumeMounts:
+  - name: config-volume
+    mountPath: /etc/config
+volumes:
+  - name: config-volume
+    configMap:
+      name: app-config
+
+```
+ 
+ Relation to Deployments:
+
+- A Deployment defines the Pods, and ConfigMaps or Secrets are referenced in the Deployment's Pod template.
+    
+- This allows:
+    
+    - Updating configurations or secrets without modifying the Deployment or rebuilding container images
+        
+    - Environment-specific values to be injected into containers
+        
+    - Central management and versioning of configuration data
+
+
+
+
+
+
+
+
+
+
+---
+## Understanding Volumes in Deployments
+
+### What is a Volume?
+
+In Kubernetes, a **volume** is a directory that is accessible to containers in a Pod. It enables containers to:
+
+- **Persist data across restarts** (unlike the container’s local ephemeral storage).
+    
+- **Share data** between multiple containers in the same Pod.
+    
+- **Mount configuration data**, secrets, or files from the host or an external source.
+    
+#### How Volumes Work in Deployments
+
+A `Deployment` creates and manages Pods, and inside those Pods you can define volume mounts using:
+
+- `volumes`: declares the volume (e.g., emptyDir, configMap, pvc).
+    
+- `volumeMounts`: specifies where to mount the volume inside the container.
+    
+
+Example:
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+      - name: myapp-container
+        image: myapp:latest
+        volumeMounts:
+        - mountPath: /data
+          name: mydata
+      volumes:
+      - name: mydata
+        persistentVolumeClaim:
+          claimName: mypvc
+
+```
+---
+
+## Volume Types Commonly Used in Deployments
+
+| Volume Type                   | Use Case                                  | Persistent? | Notes                                       |
+| ----------------------------- | ----------------------------------------- | ----------- | ------------------------------------------- |
+| `emptyDir`                    | Temporary storage (cleared on Pod delete) | ❌ No        | Good for caching or inter-container sharing |
+| `hostPath`                    | Access host filesystem                    | ❌ No        | Not portable, risky in multi-node clusters  |
+| `configMap` (as volume)       | Inject app config files                   | ❌ No        | For mounting config as files                |
+| `secret` (as volume)          | Inject secrets as files                   | ❌ No        | Secure, supports file permissions           |
+| `persistentVolumeClaim` (PVC) | Attach persistent storage                 | ✅ Yes       | Needed for databases or other stateful apps |
+
+#### YAML Snippets for Each Volume Type
+
+#### 1. `emptyDir`
+
+```yaml
+volumes:
+  - name: cache-vol
+    emptyDir: {}
+
+containers:
+  - name: app
+    image: myapp:latest
+    volumeMounts:
+      - mountPath: /tmp/cache
+        name: cache-vol
+```
+
+#### 2. `hostPath`
+
+```yaml
+volumes:
+  - name: host-logs
+    hostPath:
+      path: /var/log
+      type: Directory
+
+containers:
+  - name: logger
+    image: busybox
+    volumeMounts:
+      - mountPath: /mnt/host-logs
+        name: host-logs
+```
+
+#### 3. `configMap` (mounted as files)
+
+```yaml
+volumes:
+  - name: config-vol
+    configMap:
+      name: app-config
+
+containers:
+  - name: app
+    image: myapp:latest
+    volumeMounts:
+      - mountPath: /etc/config
+        name: config-vol
+```
+
+#### 4. `secret` (mounted as files)
+
+```yaml
+volumes:
+  - name: secret-vol
+    secret:
+      secretName: app-secret
+      defaultMode: 0400
+
+containers:
+  - name: app
+    image: myapp:latest
+    volumeMounts:
+      - mountPath: /etc/secret
+        name: secret-vol
+```
+
+#### 5. `persistentVolumeClaim` (PVC)
+
+```yaml
+volumes:
+  - name: data-vol
+    persistentVolumeClaim:
+      claimName: postgres-pvc
+
+containers:
+  - name: db
+    image: postgres:15
+    volumeMounts:
+      - mountPath: /var/lib/postgresql/data
+        name: data-vol
+```
 
 
 
@@ -436,7 +798,7 @@ status: {}
 **^Lets examine the essential sections for manifests and then go over the above generated manifests to learn about them / some additional syntax you can use to customize them.**
 #### Top level section (object definition)
 There are three required top level lines for manifests:
-- **line 1** - `apiVersion` : Manifests always have a top level section that starts with this. It indicates the API version that  the object belongs to, this can be different for each object, to determine what API owns what object you can view it with `kubectl api-resources`
+- **line 1** - `apiVersion` : Manifests always have a top level section that starts with this. It indicates the API version that the object belongs to, this can be different for each object, to determine what API owns what object you can view it with `kubectl api-resources`
 
 -  **line 2** - `kind` : This second line will tell k8s what the target object for the manifest is (e.g. pod, deployment)
 
@@ -918,9 +1280,7 @@ dive into flannel calico and weave / --pod-networ-cidr stuff like that
    
 2. **Ingress Controller:** Manages external access to services within a Kubernetes cluster, typically via HTTP or HTTPS.
 
-3. **Persistent Volumes:** Storage resources provisioned independently of pod lifecycles, allowing data to persist across pod restarts.
-
-4. **StatefulSets:** Manages the deployment and scaling of stateful applications, such as databases, with stable network identifiers and persistent storage.
+3. **StatefulSets:** Manages the deployment and scaling of stateful applications, such as databases, with stable network identifiers and persistent storage.
 
 ----
 # **AWS K8s (AWS EKS)**
@@ -942,13 +1302,18 @@ https://k21academy.com/docker-kubernetes/amazon-eks-kubernetes-on-aws/#b
 - [Kubernetes GitHub Repository](https://github.com/kubernetes/kubernetes)
   
   
+
+
+
+
+
+
   
-  
 
 
 
 
-
+---
 ---
 ---
 
@@ -960,10 +1325,46 @@ In systems we often use packages, a "package" refers to a bundle of binaries/lib
 
 Helm is a package manager tool used in Kubernetes. It operates similar to how you use a package manager like npm for JavaScript or apt for Debian-based Linux distributions.
 
-With Helm, you can easily define, install, and manage applications on Kubernetes using pre-configured templates called "charts." These charts bundle together all the necessary resources (like configurations and services) needed to deploy an application. So, instead of manually setting up each part of your application, Helm lets you deploy it all at once with a simple command.
+With Helm, you can:
+- Package **Kubernetes manifests** into reusable **charts**
+    
+- It adds **templating** so you can define variables (e.g., image tag, replicas)
+    
+- Easily perform **versioning, upgrades, and rollbacks**
+    
+- provide support for **dependency charts** (e.g., install Redis alongside your app)
+
+
+
+> ✅ **Helm is (almost) to Kubernetes what Docker Compose is to Docker. This is a good way to begin your understanding**
+
+| Concept                    | **Docker Compose**                                       | **Helm**                                              |
+| -------------------------- | -------------------------------------------------------- | ----------------------------------------------------- |
+| Definition                 | CLI + YAML tool for managing multi-container Docker apps | CLI + packaging system for Kubernetes apps            |
+| File format                | `docker-compose.yml`                                     | `Chart.yaml` + `values.yaml` + templates              |
+| Bundles multiple services? | ✅ Yes (e.g., web + db + cache)                           | ✅ Yes (e.g., Deployments, Services, ConfigMaps, etc.) |
+| Declarative config         | ✅                                                        | ✅ (with template logic)                               |
+| Parametrizable?            | Limited (`.env` or override file)                        | ✅ Highly — uses Go templating and values              |
+
+
+---
+
 ## Installing Helm:
 Helm can be installed easily from its binary run: `curl [desired release] -o [nameOfRelease] ; tar -zxvf [nameOfRelease] ; mv linux-amd64/helm /usr/local/bin/helm` 
 get name of release here: https://github.com/helm/helm/releases
 install docs here: https://helm.sh/docs/intro/install/
 
 
+## Why Use Helm If You Can Bundle Everything in One Manifest?
+you **can** technically bundle everything into a single YAML file — and for simple apps or dev use, that’s fine. But in **real-world production environments**, Helm solves many issues that single-file manifests can’t handle well:
+
+
+| Problem With Single Manifest                  | How Helm Helps                                   |
+| --------------------------------------------- | ------------------------------------------------ |
+| **Hardcoding configs (image tags, replicas)** | Helm uses `values.yaml` to template and override |
+| **No versioning or rollback**                 | Helm tracks releases and supports rollback       |
+| **No dependency handling**                    | Helm can include subcharts (e.g., Redis)         |
+| **Hard to upgrade cleanly**                   | Helm supports `upgrade` without downtime         |
+| **Difficult to share or reuse**               | Charts can be published and reused               |
+| **No lifecycle management**                   | Helm supports `install`, `uninstall`, `status`   |
+| **Hard to organize large projects**           | Helm uses a structured directory layout          |

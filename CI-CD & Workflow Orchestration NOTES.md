@@ -1,15 +1,17 @@
 
-# CI/CD NOTES
+# The what and why
 
-CI/CD stands for Continuous Integration/Continuous Deployment. It's a software development practice where code changes are automatically built, tested, and deployed. CI ensures that code changes are integrated into the main codebase regularly and tested automatically, while CD automates the deployment of code changes to production environments.
 
-In this document we cover three of the major CI/CD providers/tools that you can use to create CI/CD workflows, Github Actions, Gitlab CI/CD, and Jenkins.
 
----
 
-# Provider 1 - Github Actions
 
-Certainly! Here's a document that covers basic to intermediate syntax and examples for GitHub Actions:
+
+
+
+
+
+
+# Pipeline tool 1 - Github Actions
 
 ## GitHub Actions Syntax and Examples:
 
@@ -269,49 +271,59 @@ stages:
   - deploy
 ```
 
-### 2. Triggers:
-GitLab CI/CD pipelines can be triggered by various events including code pushes, merge requests, schedules, and manual triggers.
+### **2. Triggers:**
 
-1. **Push Events**:
-   - These events occur whenever a push is made to the repository.
-   - It triggers the pipeline whenever new commits are pushed to any branch or tag.
-   - Typically used for continuous integration (CI) workflows to automatically build and test code changes.
+GitLab CI/CD pipelines can be triggered by various events, including code pushes, merge requests, schedules, and manual interactions.
+
+###### 1. **Push Events**:
+
+- Pipelines are triggered automatically when code is pushed to specified branches.
+    
+- Common for CI (continuous integration) to run tests or builds.
+    
+
 ```yaml
-# Trigger pipeline on push events
-on:
-  push:
-    branches:
-      - main
+# .gitlab-ci.yml
+job_name:
+  script: echo "Running on push to main"
+  only:
+    - main
 ```
 
-2. **Merge Requests**:
-   - These events occur whenever a merge request is opened, updated, or synchronized (e.g., new commits are added to the merge request).
-   - It triggers the pipeline whenever merge requests are created or updated.
-   - Commonly used for running automated tests and checks on merge requests to ensure code quality before merging.
+Or using `rules` for more flexibility:
+
 ```yaml
-# Trigger pipeline on merge requests
-on:
-  merge_request:
-    branches:
-      - main
+job_name:
+  script: echo "Triggered on push"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: always
 ```
 
-3. **Schedules**:
-   - Schedules allow you to trigger pipelines at scheduled intervals, such as hourly, daily, weekly, etc.
-   - Enables periodic tasks, such as backups, reports generation, or maintenance tasks, to be automated.
-   - Useful for running routine tasks on a predefined schedule without manual intervention.
+###### 2. **Merge Requests**:
+
+- Triggered when a merge request is created or updated.
+    
+- Useful for validating changes before they’re merged.
+    
+
 ```yaml
-# Trigger pipeline on schedule
-schedules:
-  - cron: '0 0 * * *'
+job_name:
+  script: echo "Running on merge request"
+  only:
+    - merge_requests
 ```
 
-4. **Manual Triggers**:
-   - Manual triggers allow pipeline execution through the GitLab web interface or API.
-   - Provides flexibility for users to execute pipelines on-demand when needed.
-   - Useful for tasks that require manual intervention or initiation, such as deployments or releases.
+Or with `rules`:
 
-Certainly! Here's an additional section about stages in GitLab CI/CD:
+```yaml
+job_name:
+  script: echo "Running on merge request"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+```
+
 
 ### 3. Stages:
 Stages in GitLab CI/CD allow you to organize and visualize the execution of jobs in your pipeline. Each stage represents a distinct phase in your pipeline workflow, such as build, test, deploy, etc. Jobs within the same stage run concurrently, while subsequent stages wait for the completion of previous stages before starting. Example:
@@ -526,3 +538,68 @@ Continuous Integration (CI) and Continuous Deployment (CD) are practices that au
    - Regularly update Jenkins and plugins to patch vulnerabilities.
    - Use credentials binding to manage sensitive information securely.
 
+
+
+
+---
+#integrate
+
+
+```
+name: Simple Python CI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run script
+        run: python main.py
+
+      - name: Run tests
+        run: pytest
+
+```
+
+
+```
+stages:
+  - build
+  - test
+
+build-job:
+  stage: build
+  image: python:3.10
+  script:
+    - pip install -r requirements.txt
+    - python main.py
+  only:
+    - main
+
+test-job:
+  stage: test
+  image: python:3.10
+  script:
+    - pip install -r requirements.txt
+    - pytest
+  only:
+    - main
+
+```

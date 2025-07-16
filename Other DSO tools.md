@@ -29,8 +29,6 @@
 
 
 
-
-
 2. **Puppet**
    - **Overview**: Puppet is a popular configuration management tool that automates the provisioning, configuration, and management of infrastructure. It uses a declarative language to define desired states for infrastructure components. Puppet works on a master-agent model but can also operate in a masterless mode.
    - **Integration in DevOps**: Puppet is widely used in enterprise environments for managing large-scale infrastructures. It integrates with CI/CD tools like Jenkins and GitLab to ensure infrastructure consistency across environments.
@@ -76,8 +74,6 @@
      ```bash
      chef-client --local-mode default.rb
      ```
-
-
 
 
 
@@ -148,8 +144,6 @@
 
 
 
-
-
 2. **Maven**
    - **Overview**: Maven is a widely-used build automation and project management tool primarily for Java. It uses a `pom.xml` file to manage dependencies, build lifecycle, and project structure.
    - **Integration in DevOps**: Maven is commonly used in DevOps pipelines for dependency management, automated builds, and integration testing. It integrates smoothly with CI/CD tools like Jenkins, GitLab CI, and Bamboo.
@@ -185,9 +179,6 @@
        }
      }
      ```
-
-
-
 
 
 
@@ -234,8 +225,6 @@ links:
 
 
 
-
-
 3. **Bamboo**
    - **Overview**: Bamboo, developed by Atlassian, is a continuous integration and delivery tool that automates the release management process. It integrates seamlessly with other Atlassian tools like JIRA and Bitbucket.
    - **Integration in DevOps**: Bamboo automates build, test, and release processes, making it easier to manage complex pipelines. It integrates well with Docker, Kubernetes, and cloud services.
@@ -251,8 +240,6 @@ links:
      - Build and deploy Docker containers
    - **DevOps Workflow Example**: 
      Bamboo plans are commonly used for parallel builds and deployments across multiple environments (dev, staging, production).
-
-
 
 
 

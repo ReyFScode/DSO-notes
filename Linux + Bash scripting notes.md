@@ -35,6 +35,17 @@ All of the below section concepts will (95%) be the same on any Linux distro you
 
 
 ---
+## **Text Editors:**
+   - Linux offers various text editors for editing configuration files, scripts, and documents.
+   - Common text editors include Vi, Vim, Nano, and Emacs. The core editors you will most likely encounter are Vi/Vim and Nano.
+
+**Core Editor usage:**
+   - **Vi/Vim:** Vi is not fun, you can use the same save/discard instructions as you would for vim but if you have to pick between Vi and Vim....use Vim...take my word on that. Install vim using `apt-get install vim/yum install nano`(distro dependent).  Use `vim [filename]` command to open Vim editor. Press `i` to enter insert mode, make changes, then press `Esc` followed by `:wq` to save and exit, or use `Esc` followed by `:q!` to discard changes.
+     
+   - **Nano:** This is probably the most user friendly editor. Install nano using `apt-get install nano/yum install nano` (distro dependent). After installation use `nano [filename]` to enter the nano editor, use `ctrl+x   |   y` to save changes and `ctrl+x   |   n` to not save.
+
+
+___
 
 #### **Basic Commands / operators:**
 **commands**
@@ -127,7 +138,7 @@ some of these require the sysstat package to be installed, if that is required a
 - `uname -a ; ip a ; nproc / lscpu` - This is my contribution, this will give you the system name, kernel version, CPU architecture (x86/86_64), and the ip address and network interfaces for the system, and the number of logical cpus on the machine (important for ensuring you know if saturation is occurring). nproc will give a single number, lscpu will give an in-depth cpu summary, up to you which to use.
 
 
-- `df -h --total`  - shows disk space across devices, -h makes sizes human readable and --total is an option to provide a full space summary at the end.
+- `df -h --total`  - shows disk space across devices, -h makes sizes human readable and --total is a flag to provide a full space summary at the end, sometimes this flag is helpful sometimes not.
 
 
 - `free -wh` - this command prints a memory usage snapshot, the main thing we are looking at here is that 'free' isn't close to 0, ~0 will indicate that we are low/out of memory space. -w is for wide output (more detailed), -h is for human readable.
@@ -145,13 +156,13 @@ While the time the system has been up can be a valuable metric the load averages
   
 
 
-- **`vmstat 1`** - This command provides a powerful way to check memory statistics as they relate to processes. When run with a `1` argument, `vmstat` refreshes the output every second, allowing us to monitor changes over time and catch any anomalies in real-time. Here is an example of the output:
+- **`vmstat -w 1`** - This command provides a powerful way to check memory statistics as they relate to processes. When run with a `1` argument, `vmstat` refreshes the output every second, allowing us to monitor changes over time and catch any anomalies in real-time. `-w` formats the table nicely since it can be a little ugly without it. Here is an example of the output:
 ```
-$ vmstat 1
-procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
- r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
- 1  0      0  28977    561   1759    0    0     0     3    2    6  0  0 100  0  0
- 3  2      0  28977    561   1759    0    0     0     0   10   64  0  0 100  0  0
+$ vmstat -w 1
+--procs-- --------------memory--------------  ---swap-- -----io-- -system-- -------cpu--------
+   r    b     swpd      free      buff    cache   si   so    bi    bo   in   cs  us  sy  id  wa  st
+   1    0      0            308        234     1348    0    0     10    1   12   37   0   0  100   0     0   
+   0    0      0            308        234     1348    0    0      0     0     77  252  0  0 100   0     0
 ```
 
  **Key Columns to Check**:
@@ -215,7 +226,8 @@ procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
 	- **COMMAND:** The command name or command line (name + options).
 
 
-- * `mpstat -P ALL 1` - mpstat is for diving into cpu statistics, we run -P ALL to specify that we want details for all logical cpus, and 1 to set the command to output every 1 second (to track stats over time). 
+
+- * `mpstat -P ALL 1` - mpstat is for diving into cpu statistics, we run -P ALL to specify that we want details for all logical cpus, and 1 to set the command to output every 1 second (to track stats over time). running just `mpstat` will give us the stats of all cpus as one unit. 
 
 
 - * `pidstat / pidstat 1 / pidstat -p [pid] 1` - the pidstat command allows us to view cpu utilization of processes at a point in time, over time, or cpu utilization of a specific process. just using pidstat gives us a point in time snapshot of all processes running at the current moment and their cpu usage. pidstat 1 gives us a rolling output of processes running + their usage, pidstat -p pid 1, gives us a rolling output for the usage of a particular process.
@@ -227,9 +239,7 @@ procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
 	- *%util:* Device utilization. This is really a busy percent, showing the time each second that the device was doing work. Values greater than 60% typically lead to poor performance
 	
 
-
 - * `sar -n DEV 1 / sar 1` - sar with -n DEV will print network interface metrics over 1 second intervals, rxkB/s and txkB/s, as a measure of workload. sar 1 will simply print cpu utilization metrics over 1 second intervals.
-
 
 
 - * `sar -n TCP 1`  - prints tcp connection metrics over 1 second intervals, you are primarily looking at:
@@ -348,18 +358,6 @@ Systemd has a number of utilities that can be used to interact with it, the thre
   
 ---
 
-## **Text Editors:**
-   - Linux offers various text editors for editing configuration files, scripts, and documents.
-   - Common text editors include Vi, Vim, Nano, and Emacs. The core editors you will most likely encounter are Vi/Vim and Nano.
-
-**Core Editor usage:**
-   - **Vi/Vim:** Vi is not fun, you can use the same save/discard instructions as you would for vim but if you have to pick between Vi and Vim....use Vim...take my word on that. Install vim using `apt-get install vim/yum install nano`(distro dependent).  Use `vim [filename]` command to open Vim editor. Press `i` to enter insert mode, make changes, then press `Esc` followed by `:wq` to save and exit, or use `Esc` followed by `:q!` to discard changes.
-     
-   - **Nano:** This is probably the most user friendly editor. Install nano using `apt-get install nano/yum install nano` (distro dependent). After installation use `nano [filename]` to enter the nano editor, use `ctrl+x   |   y` to save changes and `ctrl+x   |   n` to not save.
-
-
-___
-
 #### **Linux networking basics**
 
 
@@ -369,7 +367,7 @@ ___
 
 
 ---
-# kernel / user space
+## kernel / user space
 
 **What is kernel space:**  
 Kernel space is the memory area where the kernel (the core of the operating system) operates and manages system resources directly. Processes in kernel space have full, unrestricted access to hardware resources, which allows the kernel to perform low-level tasks such as process management, memory management, and hardware interactions. Only the kernel and its privileged operations execute in kernel space, ensuring system stability and security.
@@ -403,7 +401,7 @@ we know the /proc directory contains data/info on all processes so to see the as
 
 
 ---
-# Process management
+## Process management
  
  Processes are instances of a running program, the process encompasses the entire execution context (current state, resource usage, etc.). Every process in linux is assigned a unique PID.
 
@@ -759,3 +757,6 @@ bash but also for shell loops: e.g.
 
 can be commed like: *while true; do echo hello; done*
 
+**env** - lists env vars
+grep -R  = recursive grep
+grep -E "something|else"   = multi grep search often paired with R e.g. RE to recurse a set of dirs for a few different things e..g searching log dirs for 'warning & fatal & error'
