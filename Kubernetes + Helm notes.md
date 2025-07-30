@@ -1046,7 +1046,7 @@ Here we will go through initializing a cluster. in this example we will use two 
 
 1) On the master node we initialize the control plane using `kubeadm init` , we need to specify a pod network CIDR for the cluster to use (more on that in the networking section):  
 ```bash
-sudo kubeadm init --pod-network-cidr=10.244.0.0/16
+sudo kubeadm init --apiserver-advertise-address=[IP] --pod-network-cidr=10.244.0.0/16
  # this should be a safe non-conflicting pod network to use, default ip/cidr is: sudo kubeadm init --pod-network-cidr=10.244.0.0/16
 # for info about non-conflicting IPs use this: https://www.techtarget.com/whatis/definition/RFC-1918
 ```
