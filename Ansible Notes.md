@@ -101,15 +101,19 @@ You can also do it like this if you just want to group a list of nondescript IP'
 or like this (better form):
 ansible_host=10.1.20.84
 ```
-You can apply host specific variables to a whole group in your hosts file by specifying a vars section for each group like this (example for linux), its best practice to specify at least the ansible user in a hosts var section.
+
+
+**Hosts file group vars**
+You can apply host specific variables to a whole group in your hosts file by specifying a vars section for each group like this (example for linux), its best practice to specify at least the ansible user in a hosts var section but you can add non-connection specific extra variables that will be accessible to plays that target that hosts group.
 ```hosts-file-example
 [stack:vars]
 ansible_user=some-user
 ansible_ssh_pass=some-password  # password for initial ssh connection
 ansible_become_pass=some-password # sudo password
+
+extra_var='this will be accessible to plays that target the stack host group'
 ```
 
-**Windows Hosts vars**
 you have to configure some specific vars for windows host groups
 ```
 [win_host:vars]
@@ -117,6 +121,30 @@ ansible_connection=ssh # best practices indicate using ssh as the connection def
 ansible_shell_type=cmd # best practices indicate using cmd as the shell default
 ansible_user=someUser
 ansible_ssh_pass=somePass # because windows has no sudo equivalent and ssh will always open a shell using the highest privs available no become_pass is needed
+```
+
+##### **NOTE - some 'hosts' tricks you can implement at the playbook level:**
+- **specifying** 
+```
+hosts: all
+```
+at the play level will apply the play across every host in every group in the hosts file
+
+- **specifying**
+```
+hosts: groupname[number_here]
+e.g: hosts: prod_hosts[0]
+```
+will target a specific host in the group by index value (hosts are indexed by newline, starting from 0) example:
+```
+  # Example hosts file:
+
+    [test_hosts]
+    host1 ansible_host=10.1.20.43
+    host2 ansible_host=10.1.20.44
+    host3 ansible_host=10.1.20.45
+...
+  hosts: test_hosts[0]  --> targets host1**
 ```
 
 
@@ -132,8 +160,7 @@ Variables can be defined at various levels:
   - **Role-level variables**: Included within roles to make them reusable.
 - Ansible uses **Jinja2 templating** to interpolate variables in playbooks and templates.
 Remember:
-- Variable precedence is important; Ansible resolves variable values based on a specific order, with higher precedence variables overwriting lower ones.
-
+- Variable precedence is important; Ansible resolves variable values based on a specific order, with higher precedence variables overwriting lower ones. [precedence list](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_variables.html#understanding-variable-precedence)
 #### Variable Example:
 - Define a variable in a playbooks top level section:
   ```yaml
@@ -147,13 +174,13 @@ Remember:
 # this is an external file called vars.yml
   variable_in_file: "magic value"
   ```
-
 ^ Example: Access and use the above variables in a playbook
   ```yaml
   
 - name: test_Play
   hosts: localhost
   connection: local
+  become: true
   
   vars:
     my_variable: "Hello, Ansible!"
@@ -167,12 +194,14 @@ Remember:
          ```
 
 
-- You can also define a variable when you run the playbook command using the -e flag:
+- You can also define a variable when you run the playbook command using the -e flag THIS IS THE MOST POWERFUL, IT WILL OVERWRITE **ANY** OTHER DECLARED VARS:
   ```yaml
-ansible-playbook -i inventory.txt -e "my_var=hello" playbook.yaml
+ansible-playbook -i inventory_file -e "my_var=hello" playbook.yaml
+
+# IF my_var=goodbye is defined in the playbook it will now resolve to hello
   ```
 
-- You can apply host specific variables to a whole group in your hosts file by specifying a vars section for each group like this (best practice is to separate with =).
+- You can apply host specific variables to a whole group in your hosts file (talked about earlier in hosts section) by specifying a vars section for each group like this (best practice is to separate with =).
 ```hosts-file-example
 [stack:vars]
 User + password vars here...
@@ -194,10 +223,7 @@ other_Var2='other value'
 
 variable docs: [Learn how to use Ansible variables with examples – 4sysops](https://4sysops.com/archives/learn-how-to-use-ansible-variables-with-examples/#:~:text=You%20can%20pass%20variables%20via%20the%20command%20line,variables%20when%20running%20your%20playbook%20or%20ad-hoc%20commands.)
 
-
----
-
-# **Leveraging Magic variables**
+### **Leveraging Magic variables**
 In Ansible, magic variables, also known as "facts," are predefined variables that provide information about the system, the environment, and the configuration of the managed hosts. These variables can be accessed within playbooks and templates, allowing you to make your Ansible playbooks more dynamic and adaptable to different environments. Magic variables are automatically set by Ansible based on the information gathered during the playbook execution.
 
 Here are some key magic variables in Ansible, particularly those related to passing values from the hosts into the playbook:
@@ -348,9 +374,9 @@ we can then call these task files into the playbook using includes/imports, more
 
 
 #### **Task + Role Includes/imports:**
-Another way to promote reusability & precisely control the task flow within your ansible playbooks, you can opt to include/import tasks and roles. Including is usually the default since its more resilient and efficient, but you can choose whichever fits your needs:
-- **including** means that the tasks are loaded dynamically during execution, this means that they will have access to main playbook task defined variables and is overall more efficient. 
-- **Importing** means that the tasks are loaded statically when the playbooks is parsed, this means that they do not have access to main playbook task defined variables which can cause some tasks to fail.
+Another way to promote reusability & precisely control the task flow within your ansible playbooks, you can opt to include/import tasks and roles. **Including is usually the default since its more resilient and efficient**, but you can choose whichever fits your needs:
+- **including** **means that the tasks are loaded dynamically during execution, this means that they will have access to main playbook task defined variables and is overall more efficient.** 
+- Importing means that the tasks are loaded statically. This means it's loaded and processed before execution so the structure is fixed at the time the playbook is parsed.
 
 ***NOTE:*** since roles always run before tasks in the order they are called, including/importing a role into the main task list is especially useful since it means you can specify when the role will be run/conditional logic for running the role.
 ###### **Example:**
@@ -358,19 +384,21 @@ This example shows how to include/import a task file / role at runtime. The task
   ```yaml
   - hosts: all
     tasks:
-      - name: Include tasks dynamically
+      - name: Include tasks (dynamically)
         ansible.builtin.include_tasks: tasks/my_tasks1.yml
 
-      - name: Import tasks statically
+      - name: include a role (dynamically)
+        ansible.builtin.include_role:
+          name: my_role2
+
+
+      - name: Import tasks (statically)
         ansible.builtin.import_tasks: tasks/my_tasks2.yml
 
-      - name: Import a statically
+      - name: Import a role (statically)
         ansible.builtin.import_role:
           name: my_role1
 
-      - name: include a role dynamically
-        ansible.builtin.include_role:
-          name: my_role2
   ```
 
 

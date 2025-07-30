@@ -720,11 +720,11 @@ spec:
 
 | Volume Type                   | Use Case                                  | Persistent? | Notes                                       |
 | ----------------------------- | ----------------------------------------- | ----------- | ------------------------------------------- |
-| `emptyDir`                    | Temporary storage (cleared on Pod delete) | ❌ No        | Good for caching or inter-container sharing |
-| `hostPath`                    | Access host filesystem                    | ❌ No        | Not portable, risky in multi-node clusters  |
-| `configMap` (as volume)       | Inject app config files                   | ❌ No        | For mounting config as files                |
-| `secret` (as volume)          | Inject secrets as files                   | ❌ No        | Secure, supports file permissions           |
-| `persistentVolumeClaim` (PVC) | Attach persistent storage                 | ✅ Yes       | Needed for databases or other stateful apps |
+| `emptyDir`                    | Temporary storage (cleared on Pod delete) | No          | Good for caching or inter-container sharing |
+| `hostPath`                    | Access host filesystem                    | No          | Not portable, risky in multi-node clusters  |
+| `configMap` (as volume)       | Inject app config files                   | No          | For mounting config as files                |
+| `secret` (as volume)          | Inject secrets as files                   | No          | Secure, supports file permissions           |
+| `persistentVolumeClaim` (PVC) | Attach persistent storage                 | Yes         | Needed for databases or other stateful apps |
 
 #### YAML Snippets for Each Volume Type
 

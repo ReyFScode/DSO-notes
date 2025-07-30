@@ -101,6 +101,38 @@
 
 
 
+4. **CloudFormation for IaC**
+CloudFormation automates provisioning of AWS infrastructure.
+
+**Basic Template Structure**
+```yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Simple EC2 Example
+Resources:
+  MyInstance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0abcdef1234567890
+```
+
+**Key Concepts**
+
+1. **Templates**: Declarative definition of AWS resources.
+    
+2. **Stacks**: Deployed instances of templates.
+    
+3. **Parameters**: Input values for flexible deployments.
+    
+4. **Outputs**: Expose stack values (e.g., IP address).
+    
+5. **Change Sets**: Review changes before deployment.
+    
+6. **Nested Stacks**: Compose large systems modularly.
+    
+
+CloudFormation works well when integrated into CI/CD workflows to provision infrastructure before deploying applications.
+
 
 
 ---
