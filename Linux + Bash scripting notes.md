@@ -34,7 +34,10 @@ All of the below section concepts will (95%) be the same on any Linux distro you
 **logical cpus** - usually the metric that is used to determine how many cpus a system has, gotten by multiplying sockets x cores per socket x threads per core, e.g. two cpu sockets with 4 cores per socket and 2 threads per core gives us 16 logical cpus 
 
 
+
 ---
+
+
 ## **Text Editors:**
    - Linux offers various text editors for editing configuration files, scripts, and documents.
    - Common text editors include Vi, Vim, Nano, and Emacs. The core editors you will most likely encounter are Vi/Vim and Nano.
@@ -47,8 +50,9 @@ All of the below section concepts will (95%) be the same on any Linux distro you
 
 ___
 
+
 #### **Basic Commands / operators:**
-**commands**
+#### **commands**
 - `ls`: List directory contents, specify `-al` for a more detailed view.
 - `du -h`: Displays the disk usage of files and directories (in human readable format). Example: `du -h /path/to/directory` displays disk usage of a target directory  in human-readable format.
 - `df -h`: Shows the amount of disk space available on the host filesystem (in human readable format). Example: use `df -h` to display host disk stats in human-readable format.
@@ -61,16 +65,18 @@ ___
 	│      ├── 1
 	│      ├── 2
 	│      └── 3
-	│              └── something_else
+	│           └── something_else
 
 - `touch [filename]`: Create new file.
 - `pwd` : Prints the current working directory
 - `lscpu` : Prints details about the system processor architecture. 
 - `nproc` : simply prints the number of logical cpus the system has.
-- `echo "something here"`: Prints text to stdout (console).
+- `echo "something here"`: Prints text to stdout (console), adds a newline after text automatically
+- `printf "something here"`: print text to stdout, no newline appended 
+- `some command | tee ./file`: takes the output of command pre-pipe and streams it to stdout & a file at the same time, *teeing* is good for logging implementation in scripts and for recording troubleshooting sessions.
 - `cat / cat -b` : gets the contents of a file, -b is used to add line numbers
 
-**operators**
+#### **operators**
 - `>> / >`: Operator used to pipe output to a file (called output redirection, can be an existing file or new file) can be used with commands or with echo. It is important to note that **>>** will append text to the end of the file whilst **>** will overwrite the file so be careful. 
 	e.g.:
 	- `echo "hello world" >> new.txt` will append "hello world" to a file called new.txt, if it doesn't exist new.txt will be created.
@@ -83,16 +89,58 @@ ___
 	- `lscpu | grep -i vulnerability | sed 's/a/b/g'` will take the output value of *lscpu* and pass it to the *grep -io* command which will do a case-insensitive search for any lines with "vulnerability" it will then pass this parsed output to the sed command and replace 'a' with 'b' giving you a final output of  all lines with the world "vulnerability" with all 'a' characters replaced with 'b'.
 
 
-#### **More advanced / useful Commands:**
+#### The holy trinity: Sed, Grep, and Awk:
+These three tools allow for powerful output transformations and are often pipelined alone or in combination e.g `command  | sed ... | awk ... | grep`
+
+ 1) **`awk` (Text Processing):** **A versatile tool for pattern scanning and processing.**
+      - Example: `awk '{print $1}' file.txt` to print the first column of a text file. or `docker image ls | awk '{print $2}` would be used to only print the tag (second) column of the docker image list command.
+      
+2) **`sed` (Stream Editor):** **Used for filtering and transforming text.**
+      - Example: `sed -i 's/old/new/g' file.txt` to replace all occurrences of 'old' with 'new' in a file. 
+      - you can use `sed -i '2d' ./file.txt` to delete a line in a file (replace 2 with the line number you want to delete, starts at 1 not 0). 
+      - For ALL use cases If you don't specify `-i` (short for insert) the changes wont be written to the file, not specifying `-i` first is a good way to test your replacement to ensure its performing the desired behavior before actually writing changes.
+      - NOTE - see section below for comparison between `tr` & `sed`
+      
+3) **`grep` (search):** **Used to search for text in output/files, output can be tailored with flags.**
+	Some useful grep flags (you can combine these for highly customized outputs):
+	- `-i`: case insensitive, ignores case, `grep -i "bob`" will find both "BOB" & "bob"
+	- `-o`: only, matches only the output vs the line of origin. e.g with a file that has the contents "my name is bob" running `grep "bob" somefile.txt ` will output the line that contains bob: "*my name is bob*", specifying `grep -o` will only output "bob"
+	- `-v` : regex to match everything EXCEPT what is specified e.g. if you have a file with the contents: 
+			**bob** 
+			**joe** 
+			**sam** 
+			**bob1**
+			**fred**
+			the command: *cat file.txt | grep -v "bob"* will output "joe sam fred" omitting everything that includes "bob." This is useful for when you have a massive amount of data and need to quickly remove a set of values. data must be newline separated.
+	- `grep -R  /dir/path/` : recursive grep, super cool! allows you to search all contents of a directory for a match
+	- `grep -E "something|else" ./somefile`: extended regex matching option, very versatile for regex operations BUT most commonly used to allow you to search for a set of matches (here we look for something & else), separate targets with a single pipe `|`
+
+#### **More useful Commands:**
+- `tr`
+	[Tr Command in Linux with Examples | Linuxize](https://linuxize.com/post/linux-tr-command/)
+	sometimes quicker then sed, can be used to replace/delete characters from standard input to output e.g = `echo "hello" | tr 'hell' 'bell'` output "bello".
+	- you can use `tr "\n " "` in any combination to eliminate newlines/spaces e.g. `ls | tr " " "\n"` will print the ls command with each entry on a newline (replaces the spaces)
+	*sed v TR*
+	- If you need to perform complex text transformations involving patterns or conditions, `sed` is the better choice. 
+	-  If you are looking to perform simple character-level replacements or deletions, `tr` is a more lightweight and efficient option.
+
+- `watch [some command here]` - prefacing a command with 'watch' will loop it so that you can continuously monitor output, e.g. `watch kubectl get pods` will watch your k8s pods so you can see events live.
+
+- `tree`: installable utility used to print the directory structure to console as a tree (filepath diagram). Must be installed via package manager.
+
+- `nohup [command] &` - runs a command in the background as a process giving it a PID and appending its output to a file called nohup.out, e.g. `nohup echo 'hi' ; sleep 10 &` runs this in the background (can be seen with ps aux), and appends the output 'hi' to the nohup.out file in the present working directory. will indicate when process terminates.
+
 - `mktemp -d    /     mktemp --tmpdir=/some/path`: used to create a temporary directory (looks something like /tmp/tmp.iZFg0nVSxw), -d will create the directory in /tmp --tmpdir= will place the directory in a specified location. e.g `mktemp --tmpdir="$(pwd)"` will create the directory in the current working directory as specified by the pwd command.
   
 - `openssl s_client -connect [serverName/IP:port]`: built-in to most linux systems, can be used to test if target server port is reachable and reports on it, useful for testing stuff like LDAP (389), ssh (22), and database ports (e.g mysql=3306). 
   **Note** that the intention of the `openssl s_client` command is primarily used to test and debug SSL/TLS connections. It connects to a server over SSL/TLS and provides detailed information about the SSL/TLS handshake, including certificates, supported ciphers, and encryption details. This makes it useful for testing **secure connections** (i.e., ports that use SSL/TLS like HTTPS, IMAPS, SMTPS, etc.).
   
-- `nohup [command] &` - runs a command in the background as a process giving it a PID and appending its output to a file called nohup.out, e.g. `nohup echo 'hi' ; sleep 10 &` runs this in the background (can be seen with ps aux), and appends the output 'hi' to the nohup.out file in the present working directory. will indicate when process terminates.
+- `set -x / set +x` - This command turns on command tracing, which causes the shell to print each command to standard error (stderr) as it's executed, along with its expanded arguments. '-' for on, '+' for off. not super useful in the terminal (unless you're using logic) but very useful for scripts
+
 
 
 ---
+
 
 #### **Operation mechanisms:**
 The term "operations" encompasses various methods for invoking commands, accessing variables, and performing actions in Bash.
@@ -100,14 +148,15 @@ The term "operations" encompasses various methods for invoking commands, accessi
 1. **Direct variable referencing** - the most simple operation this simply calls a variable, e.g.
 ```
 somevar = 50 
-echo $somevar 
+echo "$somevar" 
 #outputs 50
 ```
 
 2. **subshell execution** - used to run a command in a subshell and return its output e.g.
 ```
-echo date is: $(date)
-#outputs 'date is: output of the date command here'
+echo date is: "$(date)"
+
+#outputs 'date is: output of the date command here' double quotes around the command are not required but it is best practice and not using them can result in unintended outputs
 ```
 
 3. **arithmetic expansion** - allows for bash native simple math, note that when you use this you call variables without the preceding $ e.g
@@ -130,7 +179,88 @@ echo ${teststr/h/y}
 
 ---
 
+#### **Quoting:**
+**Best practices-**
+
+**double quotes (`"..."`)** - when referencing variables to ensure they expand properly as a single string without splitting on spaces or triggering filename globbing. This is the safest and most common usage in scripts. 
+99.99% OF THE TIME WE USE AROUND COMMANDS e.g. `X="$(pwd)"        /         echo "$(pwd)"`
+
+**Single quotes (`'...'`)** - prevent any kind of expansion, making them ideal for literal strings where you don’t want variables or commands interpreted. 
+
+**Unquoted variables** - are only appropriate when you explicitly want word splitting (e.g., for iterating over whitespace-separated items) or filename pattern expansion, but this can lead to subtle bugs if the variable contains spaces or unexpected characters.
+
+**Example**
+```bash
+filename="My File.txt"
+echo $filename     # My File.txt  ← Split into "My" and "File.txt" (can be bad)
+echo "$filename"   # My File.txt  ← Correct usage
+
+pattern="*.log"
+echo $pattern      # Might expand to matching files (globbing)
+echo "$pattern"    # *.log        ← Prevent globbing (safe)
+
+echo "$(pwd)" # echoes output of pwd command
+echo '$(pwd)'  #echoes $(pwd) literally
+
+foo="something other else"
+for x in $foo; do echo "$x"; done 
+^#echoes:
+#something 
+#other
+#else
+BUT
+for x in "$foo"; do echo "$x"; done
+^#echoes: something other else
+WHY?
+-  the first example--
+- The shell expands $foo to: `something other else`
+- Then splits it by whitespace into: `something`, `other`, `else`
+- So the loop runs 3 times
+-  the second example--
+- The shell sees "$foo" (with quotes), so it **treats it as a single string**
+- No word splitting occurs
+- So the loop runs **once**, with one string: `something other else`
+```
+
+
+---
+
+## Logic operations
+
+#### **FOR**
+`iterate through a sentance (simple)` -
+```
+foo="something other else"
+
+for x in $foo; do echo "$x"; done
+```
+the above iterates through foo (expanded to three strings separated by spaces) and outputs:
+something
+other
+else
+
+`iterate through a list of command outputs ` -
+```
+```bash
+for i in $(find ./*); do echo $i >> file.txt; done
+for i in $(find ./*); do echo $i | grep 'mc' ; done
+```
+the above iterates through every object in the current directory and appends it to a file, we can then operate on this file if needed, we can also directly grep on each object only outputting elements with 'mc'.
+
+
+#### **while**
+`do something indefinitely (while true), must have a 'do' and 'done'`
+```
+while true ; do echo hello ; sleep 2 ; done
+```
+the above echoes hello, waits 2 secs, and repeats
+
+
+---
+
+
 # Troubleshooting best practices/essential high level commands
+I learned this from: [Netflix_Linux_Perf_Analysis_60s.pdf](https://www.brendangregg.com/Articles/Netflix_Linux_Perf_Analysis_60s.pdf)
 
 ***Essential troubleshooting comms (first 60 seconds)***
 some of these require the sysstat package to be installed, if that is required an * will be next to the command.
@@ -154,7 +284,6 @@ While the time the system has been up can be a valuable metric the load averages
 
 - `dmesg -H | tail [-x]` / `dmesg -H | less` - the dmesg command allows us to read system messages, when we say system messages we mean very low level messages from the kernel ring buffer.. Running `dmesg -H | tail ` will give us the last 10 system messages, we can get more by specifying e.g. -20 to get the last 20, piping to less will allow us to use the enter key to scroll through all messages.
   
-
 
 - **`vmstat -w 1`** - This command provides a powerful way to check memory statistics as they relate to processes. When run with a `1` argument, `vmstat` refreshes the output every second, allowing us to monitor changes over time and catch any anomalies in real-time. `-w` formats the table nicely since it can be a little ugly without it. Here is an example of the output:
 ```
@@ -247,6 +376,8 @@ $ vmstat -w 1
 	-*passive/s*: number of remote initiated connections/s
 	-*retran/s*: number of retransmissions/s
 
+- `journalctl -xr` - all the above commands (for the most part) checked kernel space information, this command is for user space level logs; it prints the contents of the systemd journal showing service logs with -x giving explanations where applicable, -r shows newest entries first, file can be enormous so we want new first for troubleshooting accuracy
+  
 
 ## Additional troubleshooting commands
 
@@ -260,20 +391,39 @@ $ vmstat -w 1
 -zv : `nc -zv google.com 443` will ping google.com at port 443, useful for testing open ports, we can also use this for port scanning by specifying a port range e.g `nc -zv localhost 1-10000`
 -l : `nc -lv 1234` sets up listening on target port
 
-`nmap IP   /    nmap IP -p-` - this command (nmap must be installed) invokes the nmap utility to scan a target IP for all open ports (nmap alone does a scan for a commonly used set of ports (quicker), -p- scans all ports (longer/more in depth))
+`nmap [IP]   /    nmap [IP] -p-` - this command (nmap must be installed) invokes the nmap utility to scan a target IP for all open ports (nmap alone does a scan for a commonly used set of ports (quicker), -p- scans all ports (longer/more in depth))
 
 `mtr IP` - mtr is like ping and traceroute had a baby, we get packet/accessibility information plus the hops to the target. very useful
 
-`iterate through a list of command outputs ` -
-```
-```bash
-for i in $(find ./*); do echo $i >> file.txt; done
-for i in $(find ./*); do echo $i | grep 'mc' ; done
-```
-the above iterates through every object in the current directory and appends it to a file, we can then operate on this file if needed, we can also directly grep on each object only outputting elements with 'mc'.
+`watch [some command here]`: prefacing a command with 'watch' will loop it so that you can continuously monitor output, e.g. `watch kubectl get pods` will watch your k8s pods so you can see events live.
+
 
 
 ---
+
+
+## File System Hierarchy:
+   - Linux follows a hierarchical file system structure defined by FHS (filesystem hierarchy standard)
+   - Common directories include `/bin`, `/sbin`, `/usr`, `/etc`, `/home`, `/var`, and `/tmp`.
+   - Use the `ls` command to list directory contents, `cd` to change directories, and `pwd` to print the current directory.
+#### Root Filesystem information:
+   - In Linux, the root filesystem, denoted by `/`, is the top-level directory of the filesystem hierarchy.
+   - It contains essential system files, directories, and configurations necessary for the operating system to function.
+   - Key directories in the root filesystem include:
+     - `/bin`: Essential user binaries (commands).
+     - `/sbin`: System binaries (commands for system administration sbin = sudo bin).
+     - `/etc`: System configuration files.
+     - `/home`: Home directories for regular users.
+     - `/var`: Variable data, such as logs, spool files, and temporary files.
+     - `/tmp`: Temporary files.
+     - `/usr`: Contains exes, libraries, and source material for many system programs
+     - `/lib`: contains more libraries for executable binaries
+     - `/media`: Mount point for removable media
+     - There are more root level directories, these are just the primary ones, this guide has information on all the possible root level dirs: https://linuxhandbook.com/linux-directory-structure/
+
+
+---
+
 
 ## The Linux boot process
 
@@ -292,7 +442,9 @@ the above iterates through every object in the current directory and appends it 
 6- `systemd` handles loading daemons/services (and starts them if the unit file specifies), configures networking, and low-level tasks, preparing the system to the specified start target (graphical, multi-user, etc.).the OS is now live and the system is ready.
 
 
+
 ---
+
 
 ## SystemD
 **What is it?**
@@ -355,18 +507,11 @@ Systemd has a number of utilities that can be used to interact with it, the thre
 - `loginctl show-session [sessionNumber] -all` - used to gain comprehensive insights into a specific session, such as detailed user information, their session state, and other session-specific properties, session number can be found via the loginctl command. -all ensures even empty values are shown.
 - `loginctl show-user [username]` - You can use this command to retrieve all available information about a particular user logged into the system.
 - `loginctl list-users -H [hostname]` - Assuming systemd remote management is set up (via systemd-homed or SSH), this command allows you to inspect user information on a remote machine, which is useful for centralized management and monitoring of user sessions across a network or distributed environment without having to log directly into each server. Replace *hostname* with the remote node’s actual hostname or IP address.
-  
----
-
-#### **Linux networking basics**
-
-
-
-#### **Linux environment variables **
-
 
 
 ---
+
+
 ## kernel / user space
 
 **What is kernel space:**  
@@ -379,9 +524,10 @@ User space is the area of the operating system where user applications run and i
 User space communicates with kernel space primarily through system calls (syscalls) — predefined functions provided by the kernel that enable user processes to request services like file operations, process control, or memory management. Common examples include `fork()`, `read()`, `write()`, and `kill()`. This controlled access helps prevent unauthorized or harmful modifications to the core of the OS, maintaining system integrity and security.
 
 
-
 ---
-# File Descriptors
+
+
+## File Descriptors
  
 In Linux, everything is treated as a file. Because of this, processes have an easy way to interact with system objects. File descriptors (FDs) are non-negative integers used by processes to manage file access, as well as handle input and output. Each process has its own file descriptor table, which is associated with its PID.
 
@@ -398,9 +544,9 @@ Since EVERYTHING is a file, FDs can be assigned to ANYTHING that needs to be ope
 we know the /proc directory contains data/info on all processes so to see the associated file descriptors for a PID we can simply run (to show the links that the file descriptors have made to opened files) ls -l /proc/PID/fd.
 
 
-
-
 ---
+
+
 ## Process management
  
  Processes are instances of a running program, the process encompasses the entire execution context (current state, resource usage, etc.). Every process in linux is assigned a unique PID.
@@ -424,7 +570,10 @@ A process can be in one of 4 states:
 
 "Zombie processes don't use up any system resources. (Actually, each one uses a very tiny amount of system memory to store its process descriptor.) However, each zombie process retains its process ID (PID). Linux systems have a finite number of process IDs -- 32767 by default on 32-bit systems. If zombies are accumulating at a very quick rate -- for example, if improperly programmed server software is creating zombie processes under load -- the entire pool of available PIDs will eventually become assigned to zombie processes, preventing other processes from launching"
 
+
+
 ---
+
 
 ## USE methodology
 
@@ -445,8 +594,8 @@ Terminology definitions:
 
 
 
-
 ---
+
 
 ## Common interview issues and mitigations
 
@@ -469,9 +618,7 @@ Terminology definitions:
 	> more storage can be added in to the node
 
 
-
----
-**quick terms-**
+**-----quick terms------**
 *full-duplex*  - bidirectional
 *half-duplex* - unidirectional
 **quick commands-**
@@ -480,6 +627,11 @@ Terminology definitions:
 `kill -l` - lists all signals
 `socat` - creates a socket
 `ss` - lists network sockets appending `-xln` will list unix domain sockets
+
+
+---
+
+
 ## IPC (core IPC)
 IPC is the method in which processes communicate with each other.
 
@@ -502,24 +654,124 @@ IPC is the method in which processes communicate with each other.
 	^SUMMARY - Mutexes ensure mutual exclusion by allowing only one thread to lock a resource at a time. Semaphores use signaling to coordinate access, enabling multiple threads to share resources.
 
 
-...
-## Sys internals
+---
+
+## Curl / Wget
+- **curl** (short for _Client URL_) is a powerful, flexible command-line tool used to transfer data between your machine and a remote server using various protocols — most commonly HTTP/HTTPS, but also FTP, SCP, SFTP, SMTP, etc.
+	It’s especially useful for interacting with APIs, automating HTTP requests, testing endpoints, and transferring files.
 
 
+- **wget** is a simple, robust downloader optimized for downloading files, websites, or handling recursive downloads, especially useful in batch operations or mirroring content. It operates on HTTP, HTTPS, FTP, and FTPS protocols
+
+**TLDR;**
+- **curl** is better for APIs and scripting.
+- **wget** is better for recursive downloads or mirroring.
 
 
+## `curl`
+##### Common curl Use Cases 
+##### 1.Downloading Files
+```bash
+curl -O https://example.com/file.zip      # Save with original name
+curl -o myfile.zip https://example.com    # Save with custom name
+```
+
+##### 2.Following Redirects (important for short URLs or SSO)
+```bash
+curl -L https://bit.ly/somefile
+```
+
+##### 3.Sending POST Data (Form Submission)
+```bash
+curl -X POST -d "username=admin&password=1234" https://example.com/login
+```
+
+##### 4.Sending JSON to an API (e.g. RESTful endpoints)
+```bash
+curl -X POST https://api.example.com/v1/data \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Alice", "email": "alice@example.com"}'
+```
+the -H is for headers, the -d designates the data to send
+
+##### 5.Authenticated Requests
+Basic Auth:
+
+```bash
+curl -u user:password https://api.example.com/data
+```
+
+Bearer Token (e.g., OAuth2):
+
+```bash
+curl -H "Authorization: Bearer <token>" https://api.example.com/secure
+```
+
+##### 6.Viewing Only Headers
+```bash
+curl -I https://example.com
+```
+
+##### 7.Uploading Files (via form-data)
+```bash
+curl -F "file=@/path/to/file.txt" https://example.com/upload
+```
+
+##### 8.Verbose Debugging
+```bash
+curl -v https://example.com
+```
+#### Flags
+
+| Option         | Meaning                                       |     |
+| -------------- | --------------------------------------------- | --- |
+| `-L`           | Follow redirects                              |     |
+| `-o file`      | Write output to file                          |     |
+| `-O`           | Save file with original name from URL         |     |
+| `-I`           | Show response headers only                    |     |
+| `-H`           | Add custom headers                            |     |
+| `-X`           | Specify HTTP method (GET, POST, PUT, etc.)    |     |
+| `-F`           | Simulate form submission (useful for uploads) |     |
+| `-u user:pass` | Basic authentication                          |     |
+| `-d`           | Send data in POST requests                    |     |
+| `-v`           | Verbose (show full request/response details)  |     |
+| `-s`           | Silent mode (no progress or error output)     |     |
 
 
-...
+## `wget`
+ **wget** is designed mainly for downloading files (especially in batch or recursively)
+
+```bash
+# Download a file
+wget https://example.com/file.zip
+
+# Save with a specific filename
+wget -O newname.zip https://example.com/file.zip
+
+# Resume download
+wget -c https://example.com/file.zip
+# ^ used if you cancel (pause) with ctrl+C
+
+# Download in background
+wget -b https://example.com/bigfile.iso
+
+# Follow redirects
+wget --max-redirect=10 https://short.url
+
+# Download all links in a file
+wget -i urls.txt
+
+# Mirror a website (recursive)
+wget --mirror -p --convert-links -P ./mirror https://example.com
+```
+
 
 
 ---
-## HTTP/CURL/ports
 
+#### **Linux networking basics**
 
-
-
-
+#### **Linux environment variables **
 
 
 ---
@@ -529,32 +781,52 @@ IPC is the method in which processes communicate with each other.
 
 [Linux Performance Analysis in 60,000 Milliseconds | by Netflix Technology Blog | Netflix TechBlog](https://netflixtechblog.com/linux-performance-analysis-in-60-000-milliseconds-accc10403c55)
 
-
-
-
-
-
-
 ---
 ---
-# Other
-
-OSI/TCP-IP
-
-port knocking for security
-
-`nohup command &` - puts the command in the background as a process (nohup sets no output + process, & commits to background)
-`command &> somefile` sets command to output to somefile not to terminal
-
-
-
-
-
-
-
-
-
 ---
+---
+
+
+
+
+
+# **Bash scripting**
+
+Start all scripts with:
+
+```bash
+#!/bin/bash        < this is non optional
+set -euo pipefail   < optional but best practice
+set -x                        < for debug as you dev
+```
+
+- `#!/bin/bash` is the **shebang**; it tells the OS to use Bash to interpret the script. This avoids unexpected behavior that could happen if the default shell is different (e.g., `/bin/sh` or `dash` on Debian-based systems).
+    
+- `set -euo pipefail `:  
+	- *-e* exits immediately if any command fails
+	- *-u* exits if an unset variable is used (helps catch typos and uninitialized values)
+	- *-o pipefail* induces a fail if any command in a pipeline fails, pipeline here refers to commands piped together `command1 | command2 | command3`
+    
+- `set -x`: enables debug mode — each command and its arguments are printed before execution. This helps trace logic, see variable expansions, and find the source of errors. You can turn off tracing later in the script with: `set +x`. you can frame script sections with ' set -x ... set +x ' to target just the section you're debugging.
+
+### Script Debugging Tools
+BEST IN MY OPINION
+- `shellcheck your_script.sh`: a powerful static analysis tool that checks for syntax issues, bad practices, quoting errors, portability concerns, and more. NOT usually included by default, if you cant install it `bash -n` is a good replacement (See below)
+
+Other Options
+- `bash -n your_script.sh`: checks for syntax errors only; it doesn’t execute the script
+    
+- Run scripts with `bash -x your_script.sh` to enable tracing at runtime without modifying the script
+---
+---
+---
+---
+
+
+
+
+
+
 
 # **Debian essentials**
 Debian-based distributions, such as Ubuntu, Linux Mint, and others, inherit many of Debian's features and package management system.
@@ -572,51 +844,6 @@ Debian-based distributions, such as Ubuntu, Linux Mint, and others, inherit many
      - `sudo apt-get install package_name`: Install a new package.
      - `sudo apt-get remove package_name`: Remove a package.
 Installed packages can be found in `/var/cache/apt/archives` APT packages come in the form of .deb files, to install a package from a .deb file we use `dpkg -i name_of_file.deb`
-
-
-
-#### File System Hierarchy:
-   - Linux follows a hierarchical file system structure.
-   - Common directories include `/bin`, `/sbin`, `/usr`, `/etc`, `/home`, `/var`, and `/tmp`.
-   - Use the `ls` command to list directory contents, `cd` to change directories, and `pwd` to print the current directory.
-#### Root Filesystem information:
-   - In Linux, the root filesystem, denoted by `/`, is the top-level directory of the filesystem hierarchy.
-   - It contains essential system files, directories, and configurations necessary for the operating system to function.
-   - Key directories in the root filesystem include:
-     - `/bin`: Essential user binaries (commands).
-     - `/sbin`: System binaries (commands for system administration sbin = sudo bin).
-     - `/etc`: System configuration files.
-     - `/home`: Home directories for regular users.
-     - `/var`: Variable data, such as logs, spool files, and temporary files.
-     - `/tmp`: Temporary files.
-     - `/usr`: Contains exes, libraries, and source material for many system programs
-     - `/lib`: contains more libraries for executable binaries
-     - `/media`: Mount point for removable media
-     - There are more root level directories, these are just the primary ones, this guide has information on all the possible root level dirs: https://linuxhandbook.com/linux-directory-structure/
-
-
-
-
-
-#### The holy trinity: Sed, Grep, and Awk:
- 1) **`awk` (Text Processing):** A versatile tool for pattern scanning and processing.
-      - Example: `awk '{print $1}' file.txt` to print the first column of a text file.
-2) `sed` **(Stream Editor)**: Used for filtering and transforming text.
-      - Example: `sed -i 's/old/new/g' file.txt` to replace all occurrences of 'old' with 'new' in a file. If you dont specify `-i` the changes wont be written, not specifying `-i` first is a good way to test your replacement to ensure its performing the desired behavior before actually writing changes.
-3) `grep` : Used to search for text in output/files, output can be tailored with flags.
-	Some useful grep flags (you can combine these for highly customized outputs):
-	- `-i`: case insensitive, ignores case, `grep -i "bob`" will find both "BOB" & "bob"
-	- `-o`: only, matches only the output vs the line of origin. e.g with a file that has the contents "my name is bob" running `grep "bob" somefile.txt ` will output the line that contains bob: "*my name is bob*", specifying `grep -o` will only output "bob"
-	- `-e / -E`: regex or extended regex matching option, e.g with a file that has the contents "*my name is bob*" running `grep -oe "i.*b" somefile.txt ` (notice the combo of o + e)  will only output "*is b*" (.* matches everything from i to b).
-	- `-v` : regex to match everything EXCEPT what is specified e.g. if you have a file with the contents: 
-		**bob** 
-		**joe** 
-		**sam** 
-		**bob1**
-		**fred**
-		the command: *cat file.txt | grep -v "bob"* will output "joe sam fred" omitting everything that includes "bob." This is useful for when you have a massive amount of data and need to quickly remove a set of values. This only works with this standalone flag on a set of data separated by newlines.
-
-
 
 
 #### Users and Permissions:
@@ -697,18 +924,43 @@ then we would run `mount -a` to mount all devices in fstab, we don't have to spe
 
 
 
+
 ---
+---
+---
+---
+
+
+
+
+
+
+
 
 # **RHEL essentials**
 ...in progress
 
-
+---
+---
+---
 ---
 
-# **Bash scripting**
-...in progress
 
----
+
+
+
+
+
+
+# Other
+
+OSI/TCP-IP
+
+port knocking for security
+
+`nohup command &` - puts the command in the background as a process (nohup sets no output + process, & commits to background)
+`command &> somefile` sets command to output to somefile not to terminal
+
 
 
 
@@ -749,14 +1001,6 @@ add setfacl for adding access to a directory .../ file?
 
 Strace - traces system calls for specified command: e.g. *strace ls*
 
-
-bash but also for shell loops: e.g.
-*while true;*
-*do echo hello;*
-*done*
-
 can be commed like: *while true; do echo hello; done*
 
 **env** - lists env vars
-grep -R  = recursive grep
-grep -E "something|else"   = multi grep search often paired with R e.g. RE to recurse a set of dirs for a few different things e..g searching log dirs for 'warning & fatal & error'

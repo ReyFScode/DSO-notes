@@ -149,7 +149,7 @@ Git Flow is a branching model that uses multiple long-lived branches to manage t
 **Key Branches:**
 ```
             +------------------+
-            |      master       |
+            |      master       |p
             +------------------+
                      ^
                      |
