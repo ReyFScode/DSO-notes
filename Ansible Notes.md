@@ -11,6 +11,14 @@ Infrastructure provisioning is also a notable use case for Ansible. It integrate
 
 ---
 
+# **Installing ansible:**
+
+
+
+
+---
+
+
 # **Key Terms:**
 - **Playbook**: A YAML file that contains a sequence of tasks, defining what actions should be taken on managed nodes. Playbooks serve as the foundation for automation in Ansible.
 - **Task**: A unit of work in a playbook that defines a specific action to be performed, such as installing a package or restarting a service.
@@ -67,14 +75,16 @@ host_key_checking = False  #sets host key checking to false for ssh
 
 
 # **Host/inventory Files**
+**General**
 - **Inventory files** in Ansible serve as the source of truth for the list of managed nodes.
 - Static inventory files list hosts manually, including their IP addresses, hostnames, and other attributes.
 - Dynamic inventory scripts generate the inventory dynamically based on various data sources (e.g., cloud providers, databases).
-- Inventory files can also define host groups, which allow you to target specific sets of hosts with your playbooks.
-- The hosts file does not need to be in the same directory as your Ansible playbook. The location of the hosts file is configurable and can be specified in your Ansible configuration.
-- They are often called *Hosts* or *inventory.ini* Best practice is to call it **Hosts**
+- Inventory files define host groups, which allow you to target specific sets of hosts with your playbooks.
 
-	By default, Ansible looks for the hosts file in the `/etc/ansible/hosts` location on the control machine. However, you can specify a different location for your hosts file using the `-i` or `--inventory` command-line option when running Ansible commands or by setting the `inventory` configuration parameter in your Ansible configuration file (`ansible.cfg`).
+#### **1] Static inventory management**
+You can control Ansible with a static inventory file AKA a hosts file (They are often called *Hosts* or *inventory.ini* Best practice is to call it **Hosts**).
+
+By default, Ansible looks for the hosts file in the `/etc/ansible/hosts` location on the control machine. However, you can specify a different location for your hosts file using the `-i` or `--inventory` command-line option when running Ansible commands or by setting the `inventory` configuration parameter in your Ansible configuration file (`ansible.cfg`).
 	
 	For example, to use a hosts file located in a different directory, you can specify it like this when running an Ansible playbook:
 ```bash
@@ -118,6 +128,129 @@ ansible_shell_type=cmd # best practices indicate using cmd as the shell default
 ansible_user=someUser
 ansible_ssh_pass=somePass # because windows has no sudo equivalent and ssh will always open a shell using the highest privs available no become_pass is needed
 ```
+
+
+#### **2] Dynamic inventory management**
+A Dynamic inventory model generates  the inventory dynamically based on various data sources (e.g., cloud providers, databases).
+
+**Dynamic Inventory Models**
+Dynamic inventories in Ansible generally come in **two forms**:
+
+1. **Plugin-based Model** _(Best Practice)_
+    - Uses a built-in or community Ansible inventory plugin.
+    - Configuration is stored in a YAML file.
+    - Runs natively within Ansible (no external scripts).
+    - Example: `aws_ec2`, `azure_rm`, `gcp_compute`.
+
+2. **Script-based Model** _(Legacy / Less Common)_
+    
+    - Uses an external script to query an API or source system.
+    - Script outputs JSON in the format Ansible expects.
+    - More maintenance-heavy and less integrated than plugins.
+
+
+> **Note:** The plugin model is the most common and recommended approach, as it’s fully supported by Ansible core, easier to maintain, and integrates seamlessly with other features like `group_vars` and `host_vars`.
+
+
+**Standard Dynamic Inventory File Structure**
+A typical Ansible dynamic inventory layout looks like this:
+```
+/Project                # Top-level Ansible project directory
+│
+└── inventory/
+    ├── inventory_file.yml       # Dynamic inventory config (aws_ec2, azure_rm, etc.)
+    ├── group_vars/              # Variables for groups of hosts
+    │   ├── group1.yml
+    │   └── group2.yml
+    └── host_vars/               # Variables for individual hosts
+        ├── host1.yml
+        └── host2.yml
+```
+#### **^**
+- **`inventory_file.yml`** → The dynamic inventory definition (equivalent to `hosts.ini` in static setups).
+
+- **`group_vars/`** → Defines variables for host groups, similar to the `[group:vars]` section in a static hosts file.  
+- **`host_vars/`** → Defines variables specific to individual hosts.
+>^ These 2 variable directories files are reusable and follow the same pattern as role variables in `roles/<role_name>/vars/main.yml`.
+
+**dynamic inventory .yaml walkthrough / common sections**
+```
+
+# inventory/aws_ec2.yml (generated generic example file)
+
+plugin: amazon.aws.aws_ec2
+strict: False
+
+keyed_groups:
+  - key: tags
+    prefix: tag
+  - key: instance_type
+    prefix: aws_instance_type
+  - key: placement.region
+    prefix: aws_region
+
+hostnames:
+  - name: tag:Name
+  - name: private-ip-address
+
+compose:
+  ansible_host: private_ip_address
+
+groups:
+  web_servers: tags['Role'] == 'WebServer'
+  db_servers: tags['Role'] == 'Database'
+  dev_environment: tags['Environment'] == 'Dev'
+  prod_environment: tags['Environment'] == 'Prod'
+
+```
+^ **Explanation of Each Section**
+##### `plugin: amazon.aws.aws_ec2`
+- Specifies the inventory plugin to use.
+- This plugin queries AWS EC2 to dynamically discover instances.
+#####  `strict: False`
+- Allows the plugin to ignore unknown fields in the EC2 metadata without failing.
+##### `keyed_groups`
+```yaml
+keyed_groups:
+  - key: tags
+    prefix: tag
+  - key: instance_type
+    prefix: aws_instance_type
+  - key: placement.region
+    prefix: aws_region
+```
+- Automatically creates groups based on EC2 metadata.
+- Each entry defines:
+	- **What metadata to query** (`key`)
+	- **How to name the group** (`prefix`)
+		- e.g. - instance type queries `instance_type: t3.medium` from AWS, then it is prefixed as specified and a group, in this case `aws_instance_type_t3.medium`, would be  created
+##### `hostnames`
+```yaml
+hostnames:
+  - name: tag:Name
+  - name: private-ip-address
+```
+- Defines how hostnames are assigned to EC2 instances.
+- Tries to use the `Name` tag first, then falls back to the private IP.
+#####  `compose`
+```yaml
+compose:
+  ansible_host: private_ip_address
+```
+- Sets the `ansible_host` variable to the instance’s private IP.
+- This tells Ansible how to connect to the host.
+##### `groups`
+```yaml
+groups:
+  web_servers: tags['Role'] == 'WebServer'
+  db_servers: tags['Role'] == 'Database'
+  dev_environment: tags['Environment'] == 'Dev'
+  prod_environment: tags['Environment'] == 'Prod'
+```
+- Creates custom groups based on tag values.
+- Useful for targeting specific roles or environments in playbooks.
+
+
 
 
 ---

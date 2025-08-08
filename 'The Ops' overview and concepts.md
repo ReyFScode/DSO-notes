@@ -342,6 +342,8 @@ This is a core concept for Devops engineers and there will be a whole note page 
 ### **CI/CD**
 This is a core concept for Devops engineers and there will be a whole note page dedicated to this please see [[CI-CD & Workflow Orchestration NOTES]]
 
+### **GitOps**
+...
 
   
 ---

@@ -223,8 +223,6 @@ terraform apply -target=aws_instance.my_instance
 
 
 
-
-
 ---
 # **Sample Terraform Configuration**
 Here's a basic example of a Terraform main.tf configuration file that provisions an AWS EC2 instance:
