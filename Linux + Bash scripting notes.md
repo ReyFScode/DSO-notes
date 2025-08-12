@@ -696,13 +696,10 @@ the -H is for headers, the -d designates the data to send
 
 ##### 5.Authenticated Requests
 Basic Auth:
-
 ```bash
 curl -u user:password https://api.example.com/data
 ```
-
 Bearer Token (e.g., OAuth2):
-
 ```bash
 curl -H "Authorization: Bearer <token>" https://api.example.com/secure
 ```
@@ -977,19 +974,6 @@ remove an alias `unalias [name]`
 
 ADD info about chaining commands with ';' (for chains that do not require all the previous command to complete successfully ) and with '&&' (for chaining commands that require the previous command to execute successfully)
 
-
-SED
-sed replace is (-i replaces permanently in file, no -i only replaces in output) `sed -i 's/something/somethingElse/(g if you want global [all instances])'
-
-sed delete : `sed '1d` specify line number + d to delete that line
-
-TR
-[Tr Command in Linux with Examples | Linuxize](https://linuxize.com/post/linux-tr-command/)
-can be used to replace/delete characters e.g = `echo "hello" | tr 'hell' 'bell'` output "bello" or you can use `tr "\n " "` to eliminate newlines in a file e.g. `ls | tr " " "\n"` will print the ls command with each entry on a newline
-
-sed v TR
-- If you need to perform complex text transformations involving patterns or conditions, `sed` is the better choice. 
--  If you are looking to perform simple character-level replacements or deletions, `tr` is a more lightweight and efficient option.
 
 
 

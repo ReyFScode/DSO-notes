@@ -13,9 +13,26 @@ Infrastructure provisioning is also a notable use case for Ansible. It integrate
 
 # **Installing ansible:**
 
-
-
-
+1. Install Python 3 and venv support:
+```bash
+sudo apt update
+sudo apt install python3 python3-venv python3-pip
+```
+2. Create and activate a Python virtual environment:
+```bash
+python3 -m venv ~/ansible-env
+source ~/ansible-env/bin/activate
+```
+3. Upgrade pip and install Ansible, boto3, & botocore.
+```bash
+pip install --upgrade pip
+pip install ansible boto3 botocore
+```
+4. Galaxy install any required collections, **at a minimum you should use `community.general`, has lots of common essential extensions**
+```bash
+ansible-galaxy collection install community.general amazon.aws
+# for example, I want to to use the AWS ec2 dynamic inventory plugin, so I galaxy install the AWS collection
+```
 ---
 
 
@@ -27,7 +44,7 @@ Infrastructure provisioning is also a notable use case for Ansible. It integrate
 - **Role**: A collection of playbooks, variables, and other files organized into a directory structure. Roles are used for modularizing and reusing automation code.
 - **Fact**: System information about managed nodes collected by Ansible and available as variables. These facts can be used in playbooks to make decisions.
 - **Handlers**: Special tasks defined in playbooks that are only executed when triggered by another task, typically used for restarting services after configuration changes.
-
+- **Collection:** Ansible collections are distributable packages of Ansible content, designed to organize and share automation resources. They are hosted in repositories like [**Ansible Galaxy**](https://galaxy.ansible.com/ui/collections/) or private registries, making it easier to manage and reuse automation code. By default, `ansible-galaxy collection install` uses [https://galaxy.ansible.com](https://galaxy.ansible.com/) as the Galaxy server
 
 
 ---
@@ -37,7 +54,7 @@ you use the `ansible-playbook` command to run a playbook you can specify flags t
 ```yaml
 ansible-playbook somePlaybook.yml #runs a playbook with nothing specified. add -v, -vv , -vvv to determine output verbosity.
 
-ansible-playbook -i ./path/hosts somePlaybook.yml # -i specifies a path to a hosts file if it isnt specified it looks in the /etc/ansible dir for one.
+ansible-playbook -i ./path/hosts somePlaybook.yml # -i specifies a path to a hosts file if it isnt in the current dir, specified via this flag, or pointed to in the cfg file, it looks in the /etc/ansible dir for one.
 
 ansible-playbook -Kk somePlaybook.yml # -Kk (capital K followed by lowercase k) will prompt you for the ssh and become (sudo) password when the run occurs.
 
@@ -46,7 +63,12 @@ ansible-playbook -u USERname somePlaybook.yml # -u allows you to specify the use
 ansible-playbook -e "my_var=hello" somePlaybook.yml # -e allows you to set variables at runtime, each var must have its own -e preceding it.
 
 ansible-playbook somePlaybook.yml --tags sometag, someothertag # tags allow you to specify only certain plays in the playbook (they are described via YAML on a play by play basis), --tags allow you to choose the tags you want to run.
+
+ansible-playbook somePlaybook.yml --private-key /location/keyfile # specifies a private key file to use for ssh key based auth
+
 ```
+
+
 
 ---
 
@@ -68,6 +90,14 @@ You can choose the most appropriate location for your `ansible.cfg` file based o
 ``` yaml
 [defaults] # begins with defauls
 host_key_checking = False  #sets host key checking to false for ssh
+inventory = /path/to/your/static/or/dynamic/inventory/file #sets inventory location
+
+[ssh_connection] 
+ssh_args = -i /path/to/ssh_private_key # sets a location for a private key to forego password based auth, basically does this by appending the -i flag to your command
+
+[inventory]
+enable_plugins = aws_ec2 # enable the ec2 dynamic inventory plugin.
+
 ```
 
 
@@ -75,23 +105,30 @@ host_key_checking = False  #sets host key checking to false for ssh
 
 
 # **Host/inventory Files**
-**General**
+### **General**
 - **Inventory files** in Ansible serve as the source of truth for the list of managed nodes.
 - Static inventory files list hosts manually, including their IP addresses, hostnames, and other attributes.
 - Dynamic inventory scripts generate the inventory dynamically based on various data sources (e.g., cloud providers, databases).
 - Inventory files define host groups, which allow you to target specific sets of hosts with your playbooks.
 
-#### **1] Static inventory management**
+### **Helpful commands**
+
+| Command                                               | Output type       | Typical use                                 |
+| ----------------------------------------------------- | ----------------- | ------------------------------------------- |
+| `ansible-inventory -i /inventory_file --list`         | Full JSON dump    | Debug entire inventory data                 |
+| `ansible-inventory -i /inventory_file  --graph`       | Tree view         | Visualize group/host relationships          |
+| `ansible-inventory -i /inventory_file  --host <host>` | JSON for one host | See all vars for specific host (debug vars) |
+
+#### **1] ---Static inventory management---**
 You can control Ansible with a static inventory file AKA a hosts file (They are often called *Hosts* or *inventory.ini* Best practice is to call it **Hosts**).
 
 By default, Ansible looks for the hosts file in the `/etc/ansible/hosts` location on the control machine. However, you can specify a different location for your hosts file using the `-i` or `--inventory` command-line option when running Ansible commands or by setting the `inventory` configuration parameter in your Ansible configuration file (`ansible.cfg`).
 	
-	For example, to use a hosts file located in a different directory, you can specify it like this when running an Ansible playbook:
+> For example, to use a hosts file located in a different directory, you can specify it like this when running an Ansible playbook:
 ```bash
 ansible-playbook -i /path/to/your/hosts/file playbook.yml
 ```
-
-Or, you can set it in your `ansible.cfg` file:
+> Or, you can set it in your `ansible.cfg` file:
 ```ini
 [defaults]
 inventory = /path/to/your/hosts/file
@@ -158,7 +195,7 @@ will target a specific host in the group by index value (hosts are indexed by ne
 ```
 
 
-#### **2] Dynamic inventory management**
+#### **2] ---Dynamic inventory management---**
 A Dynamic inventory model generates  the inventory dynamically based on various data sources (e.g., cloud providers, databases).
 
 **Dynamic Inventory Models**
@@ -188,96 +225,75 @@ A typical Ansible dynamic inventory layout looks like this:
 └── inventory/
     ├── inventory_file.yml       # Dynamic inventory config (aws_ec2, azure_rm, etc.)
     ├── group_vars/              # Variables for groups of hosts
-    │   ├── group1.yml
-    │   └── group2.yml
-    └── host_vars/               # Variables for individual hosts
+    │   ├── /groupName/group1.yml
+    │   └── /groupName/group2.yml
+    └── host_vars/               # Variables for individual hosts if needed
         ├── host1.yml
         └── host2.yml
 ```
 #### **^**
 - **`inventory_file.yml`** → The dynamic inventory definition (equivalent to `hosts.ini` in static setups).
 
-- **`group_vars/`** → Defines variables for host groups, similar to the `[group:vars]` section in a static hosts file.  
-- **`host_vars/`** → Defines variables specific to individual hosts.
->^ These 2 variable directories files are reusable and follow the same pattern as role variables in `roles/<role_name>/vars/main.yml`.
+- **`group_vars/`** → Defines variables for host groups, similar to the `[group:vars]` section in a static hosts file.  e.g. you could put `ansible_user: ec2-user` here
+	**`host_vars/`** → Defines variables specific to individual hosts.
+>	^ These 2 variable directories files are reusable and follow the same pattern as role variables in `roles/<role_name>/vars/main.yml`.
 
-**dynamic inventory .yaml walkthrough / common sections**
+
+**dynamic inventory .yaml walkthrough / common sections (FOR AWS)**
 ```
+# Example dynamic inventory file for AWS
+# all plugins have particular syntax which 
+# can be found in the docs
 
-# inventory/aws_ec2.yml (generated generic example file)
+# inventory/aws_ec2.yml (generic example file)
 
 plugin: amazon.aws.aws_ec2
-strict: False
+strict: false
+aws_access_key: "xxxx"
+aws_secret_key: "xxxx"
 
-keyed_groups:
-  - key: tags
-    prefix: tag
-  - key: instance_type
-    prefix: aws_instance_type
-  - key: placement.region
-    prefix: aws_region
-
-hostnames:
-  - name: tag:Name
-  - name: private-ip-address
-
+hostname_variable: public_ip_address
 compose:
-  ansible_host: private_ip_address
+  ansible_host: public_ip_address
 
+# dynamic group creation
+keyed_groups:
+  - key: placement.region
+    name: region
 groups:
-  web_servers: tags['Role'] == 'WebServer'
-  db_servers: tags['Role'] == 'Database'
-  dev_environment: tags['Environment'] == 'Dev'
-  prod_environment: tags['Environment'] == 'Prod'
+  primary_Servers: "'TEST' in tags.Name"
+  schema: "'schema' in tags.Name"
+  east1: "'us-east-1' in placement.region"
+
 
 ```
 ^ **Explanation of Each Section**
-##### `plugin: amazon.aws.aws_ec2`
-- Specifies the inventory plugin to use.
-- This plugin queries AWS EC2 to dynamically discover instances.
-#####  `strict: False`
-- Allows the plugin to ignore unknown fields in the EC2 metadata without failing.
-##### `keyed_groups`
-```yaml
-keyed_groups:
-  - key: tags
-    prefix: tag
-  - key: instance_type
-    prefix: aws_instance_type
-  - key: placement.region
-    prefix: aws_region
-```
-- Automatically creates groups based on EC2 metadata.
-- Each entry defines:
-	- **What metadata to query** (`key`)
-	- **How to name the group** (`prefix`)
-		- e.g. - instance type queries `instance_type: t3.medium` from AWS, then it is prefixed as specified and a group, in this case `aws_instance_type_t3.medium`, would be  created
-##### `hostnames`
-```yaml
-hostnames:
-  - name: tag:Name
-  - name: private-ip-address
-```
-- Defines how hostnames are assigned to EC2 instances.
-- Tries to use the `Name` tag first, then falls back to the private IP.
-#####  `compose`
-```yaml
-compose:
-  ansible_host: private_ip_address
-```
-- Sets the `ansible_host` variable to the instance’s private IP.
-- This tells Ansible how to connect to the host.
-##### `groups`
-```yaml
-groups:
-  web_servers: tags['Role'] == 'WebServer'
-  db_servers: tags['Role'] == 'Database'
-  dev_environment: tags['Environment'] == 'Dev'
-  prod_environment: tags['Environment'] == 'Prod'
-```
-- Creates custom groups based on tag values.
-- Useful for targeting specific roles or environments in playbooks.
+- **Plugin:** Uses the `amazon.aws.aws_ec2` plugin to dynamically fetch EC2 instances from your AWS account.
+- **strict: false**- Avoids erroring out if a tag is missing
 
+- **Authentication:** Uses your AWS access and secret keys to authenticate API calls.
+> best to never hardcode these, export them as env variables instead or follow this [guide](https://docs.ansible.com/ansible/latest/collections/amazon/aws/docsite/aws_ec2_guide.html#authentication)
+```
+export AWS_ACCESS_KEY_ID='AK123'
+export AWS_SECRET_ACCESS_KEY='abc123'
+```
+
+- **Hostname variable:** Uses the EC2 instance’s **public IP address** (`public_ip_address`) as the hostname for SSH connections. effectively sets `ansible_host` for each group to the IP. example > group (east1) host = ansible_host = DNS | DNS is replaced with public_ip. Can also be `private_ip_address`
+- **Compose:** Sets `ansible_host` to the public IP so Ansible connects over the public network.
+> **^ Why both compose and hostname_variable** - The **inventory hostname** (`hostname_variable`) is how hosts are identified in the inventory and in playbook targeting. The **`ansible_host` variable** (set via `compose`) tells Ansible the actual network address to use when connecting via SSH or other transports.
+
+- **Dynamic grouping:**
+`keyed_groups` creates groups based on the EC2 instance attribute
+- Each entry defines:
+    - **What metadata to query** (`key`)
+    - **How to name the group** (`prefix`)
+        - e.g. - `key: placement.region ` queries the region data from AWS then it is prefixed as specified and grouped. making: `region.us-east-1`
+
+- **Custom groups:**
+Here we define custom groups: making another group that shortens the us-east-1 group to east1, and some custom groups based on the ec2 instance name tags.
+    - `primary_Servers`: includes hosts whose EC2 tag `Name` contains the string `'TEST'`.
+    - `schema`: includes hosts whose EC2 tag `Name` contains the string `'schema'`.
+    - `east1`: includes hosts where the instance’s `placement.region` exactly equals `'us-east-1'`.
 
 
 
@@ -285,6 +301,7 @@ groups:
 
 
 # **Using Variables**
+**Really good variable docs: [Learn how to use Ansible variables with examples – 4sysops](https://4sysops.com/archives/learn-how-to-use-ansible-variables-with-examples/#:~:text=You%20can%20pass%20variables%20via%20the%20command%20line,variables%20when%20running%20your%20playbook%20or%20ad-hoc%20commands.)**
 Variables in Ansible are used to store and manage data that can be used within playbooks and templates.
 
 Variables can be defined at various levels:
@@ -353,8 +370,6 @@ other_Var2='other value'
 #      ^  this will show all registered fields of the variable, you can then access specific ones with something linke "{{ foo_result.stdout }}"
 ```
 
-
-variable docs: [Learn how to use Ansible variables with examples – 4sysops](https://4sysops.com/archives/learn-how-to-use-ansible-variables-with-examples/#:~:text=You%20can%20pass%20variables%20via%20the%20command%20line,variables%20when%20running%20your%20playbook%20or%20ad-hoc%20commands.)
 
 ### **Leveraging Magic variables**
 In Ansible, magic variables, also known as "facts," are predefined variables that provide information about the system, the environment, and the configuration of the managed hosts. These variables can be accessed within playbooks and templates, allowing you to make your Ansible playbooks more dynamic and adaptable to different environments. Magic variables are automatically set by Ansible based on the information gathered during the playbook execution.
@@ -553,11 +568,16 @@ This example shows how to include/import a task file / role at runtime. The task
 
 - Use the `template` module in a playbook to render the template:
   ```yaml
+  vars:
+    welcome_message: "Hello, World!"
   tasks:
     - name: Create configuration file
       template:
         src: config.j2
         dest: /etc/myapp/config.txt
+
+#output is > config.txt w contents:
+Welcome message: Hello, World!
   ```
 
 - Pass variable values when running the playbook (or in hosts/in the play configuration section), however you specify the vars, values will be input for the templated file:
@@ -566,8 +586,15 @@ This example shows how to include/import a task file / role at runtime. The task
   ```
 
 
+---
+# **Ansible Ad-hoc commands:**
+ansible ad-hoc commands allow you to run an ansible module against a specific target, for example
+`ansible all -i ./hosts.aws_ec2.yaml -m debug -a "msg='Connecting to {{ inventory_hostname }} using ansible_host={{ hostvars[inventory_hostname].private_ip_address }}'"` will try a connection to all hosts and print the hostname and ip address alongside if it was succesfull, it is using the debug module
+
+
 
 ---
+
 
 # **Play setup / specifications:**
 

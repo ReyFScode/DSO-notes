@@ -89,8 +89,16 @@ There are a few ways we can configure our VPC for remote access to our private r
 
 ---
 
+# AWS Security
+
+**further clarification of the levels to vpc security security groups - NACLS, ec2 level control, etc.**
+
+---
+
 # AWS Databases
 **What it is:** The AWS Command Line Interface (CLI) is a unified tool that provides a command-line interface for managing your Amazon Web Services (AWS) resources. It enables you to interact with AWS services via scripts or commands from 
+
+
 
 
 

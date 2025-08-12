@@ -26,10 +26,18 @@ cmd: [venv dir]\Scripts\activate.bat
 powershell: [venv dir]\Scripts\Activate.ps1
 
 Linux: 
-[venv dir] myvenv/bin/activate
-
+go to v-env dir then run
+source /bin/activate
 ```
 
+- To deactivate a VENV:
+```bash
+# run
+deactivate
+
+
+
+```
 
 
 ---
