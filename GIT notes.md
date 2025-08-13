@@ -174,10 +174,14 @@ git checkout -b new-feature
 This creates and switches to a new branch called `new-feature`.
 
 After making changes and committing them, push the branch to the remote:
-
 ```bash
 git push -u origin new-feature
 ```
+NOTE : if you've already checked out a new branch (it is your head), you also simply use
+```bash
+git push -u origin head
+```
+to push the branch up
 
 ### Switching Branches
 
