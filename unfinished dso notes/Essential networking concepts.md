@@ -7,3 +7,7 @@ netplan
 resolv
 
 /etc/hosts
+
+
+DNS
+DHCP

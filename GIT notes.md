@@ -234,6 +234,34 @@ If conflicts occur, Git will pause and allow you to resolve them manually before
 
 ---
 
+# **Stashing Changes**
+
+Stashing temporarily saves uncommitted changes so you can switch branches or update without losing work.
+
+```bash
+git stash
+```
+
+To apply the last stashed changes:
+
+```bash
+git stash apply
+```
+
+To view all stashes:
+
+```bash
+git stash list
+```
+
+To drop a stash after applying:
+
+```bash
+git stash drop
+```
+
+---
+
 # **Git LFS (Large File Storage)**
 
 Git LFS is useful when working with binary or large files that don’t change frequently (e.g., media assets, datasets).
@@ -265,34 +293,6 @@ Git LFS is useful when working with binary or large files that don’t change fr
     
 
 LFS ensures large files are stored outside the core Git repository and linked via pointers.
-
----
-
-# **Stashing Changes**
-
-Stashing temporarily saves uncommitted changes so you can switch branches or update without losing work.
-
-```bash
-git stash
-```
-
-To apply the last stashed changes:
-
-```bash
-git stash apply
-```
-
-To view all stashes:
-
-```bash
-git stash list
-```
-
-To drop a stash after applying:
-
-```bash
-git stash drop
-```
 
 ---
 

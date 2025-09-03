@@ -81,10 +81,38 @@ There are a few ways we can configure our VPC for remote access to our private r
 4. **Transit Gateway:**  
 	AWS Transit Gateway is a service that simplifies network management by acting as a central hub for interconnecting multiple VPCs, on-premises networks, or VPN connections. It can scale to thousands of VPCs and works well in large, complex architectures requiring centralized management.
 	
-6. **SSH (Public Subnet with Security Groups/NACLs):**  
+5. **SSH (Public Subnet with Security Groups/NACLs):**  
     Resources in public subnets can be accessed directly over the internet by using public IP addresses. Security groups and Network ACLs (NACLs) must be configured to control traffic flow, ensuring only authorized IPs or ranges have access.
+    
 6. **AWS instance connect console:**  
 	AWS provides a dashboard console for access to compute instances [Connect using EC2 Instance Connect - Amazon Elastic Compute Cloud](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-connect-methods.html#:~:text=To%20connect%20to%20your%20instance%20using%20the%20Amazon,EC2%20Instance%20Connect.%20For%20Username%2C%20verify%20the%20username.)
+
+
+
+---
+
+# AWS API
+
+**AWS API Gateway:**
+- A **fully managed service** to create, publish, and manage APIs.
+- Supports **REST**, **HTTP**, and **WebSocket** APIs.
+- Integrates with **Lambda**, **IAM**, **Cognito**, etc.
+
+ **Key Features:**
+- **Routing**: Maps HTTP requests to backend services.
+- **Security**: IAM, custom authorizers, JWT validation.
+- **Throttling & Caching**: Built-in support.
+- **Monitoring**: Integrated with CloudWatch.
+
+
+ **API Gateway vs Standard APIs:**
+
+| Feature  | API Gateway       | Standard API (e.g., Flask, Express) |
+| -------- | ----------------- | ----------------------------------- |
+| Hosting  | Managed by AWS    | Self-hosted or containerized        |
+| Scaling  | Auto-scaled       | Manual or via orchestration         |
+| Security | IAM, Cognito, JWT | Custom implementation               |
+| Cost     | Pay-per-request   | Depends on hosting                  |
 
 
 ---
@@ -129,6 +157,24 @@ There are a few ways we can configure our VPC for remote access to our private r
 **What it is:** The AWS Command Line Interface (CLI) is a unified tool that provides a command-line interface for managing your Amazon Web Services (AWS) resources. It enables you to interact with AWS services via scripts or commands from 
 
 
+
+
+
+---
+
+# AWS Lambda
+**What it is:** a serverless compute service that runs code in response to events (e.g., HTTP requests, S3 uploads).
+
+ **Key Concepts:**
+- **Stateless**: No persistent state between invocations.
+- **Cold Start**: Initial delay when function is not warm.
+- **Event-driven**: Triggered by API Gateway, S3, etc.
+- **Function URL**: Direct HTTP endpoint for Lambda.
+
+**Use Cases:**
+- Microservices
+- Data processing
+- Auth token validation
 
 
 

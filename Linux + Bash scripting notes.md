@@ -18,7 +18,7 @@ All of the below section concepts will (95%) be the same on any Linux distro you
 
 **syscall** - procedure that an application invokes to make calls from the user space to the kernel space to perform a task. e.g. for vim to open a file it must make an open() system call to the kernel to perform that task.
 
-**hardlink** - a hardlink is a a directory entry that points to a selected file, if the file is deleted its data still exists in the hardlink, and data changes in one are reflected in the other ala bindmount. They share the indode number of their link source so they are resource efficient. they cannot span filesystems. created with the `ln` command, often used for backup systems since they perserve the data of their origin file but do not take up additional disk space
+**hardlink** - a hardlink is a a directory entry that points to a selected file, if the file is deleted its data still exists in the hardlink, and data changes in one are reflected in the other ala bind mount. They share the inode number of their link source so they are resource efficient. they cannot span filesystems. created with the `ln` command, often used for backup systems since they preserve the data of their origin file but do not take up additional disk space
 
 **softlink** - a soflink is also a symbolic link to a file but it has its own inode assignment, can span filesystems. if the source file is deleted the link file "dangles" and points to nothing. created with `ln -s`. we often softlink applications to /bin when we want them to be available by command.
 
