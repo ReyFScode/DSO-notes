@@ -1,55 +1,37 @@
-These are all my personal study notes, I reccomend going through 2 per day each day and doing the associated flashcards (in progress..)
+# Personal Study Notes
 
-## Table of contents:
+These are all my personal study notes. If starting from 0 go in order of the table of contents, otherwise I recommend going through 2 per day and doing the associated flashcards (will be added later)
 
-**-DSO core:**
-- -[DevOps concepts](https://github.com/ReyFScode/DSO-notes/blob/main/DEVOPS%20concepts.md)
-- --[GIT notes](https://github.com/ReyFScode/DSO-notes/blob/main/GIT%20notes.md)
+---
 
-**-Containerization:**
-- -[Docker](https://github.com/ReyFScode/DSO-notes/blob/main/Docker%20notes.md)
-- --[K8s](https://github.com/ReyFScode/DSO-notes/blob/main/Kubernetes%20notes.md)  |  <-[flashcards](https://quizlet.com/931874317/k8s-flash-cards/)
-
-**-IAC/tools:**
-- -[Ansible V Terraform](https://github.com/ReyFScode/DSO-notes/blob/main/Ansible%20V%20terraform.md)
-- --[Ansible](https://github.com/ReyFScode/DSO-notes/blob/main/Ansible%20Notes.md)
-- ---[Terraform](https://github.com/ReyFScode/DSO-notes/blob/main/Terraform%20notes.md)
-- ----[Other DSO tools (IAC, build, etc.)](https://github.com/ReyFScode/DSO-notes/blob/main/Other%20DSO%20tools.md)
-
-**-Systems/Networking/Application tech:**
-- -[Linux](https://github.com/ReyFScode/DSO-notes/blob/main/Linux%20%2B%20Bash%20scripting%20notes.md)
-- --[Networking](https://github.com/ReyFScode/DSO-notes/blob/main/Essential%20networking%20concepts.md)
-- ----[Web/Applicaton tech](https://github.com/ReyFScode/DSO-notes/blob/main/Web%2BApplication%20technologies.md)
-
-**-Cloud:**
-- -[AWS](https://github.com/ReyFScode/DSO-notes/blob/main/AWS%20NOTES.md)  |  <-[flashcards](https://quizlet.com/867909308/aws-csa-ccp-exam-study-guide-flash-cards/)
-
-**-other:**
-- -[hyper-v](https://github.com/ReyFScode/DSO-notes/blob/main/Hyper%20-%20V%20notes.md)
+# 📚 Table of Contents
 
 
+### 🧠 DSO Core
+- [The Ops - Overview and Concepts](1.1%5D%20'The%20Ops'%20overview%20and%20concepts.md)
+- [CI/CD & Workflow Orchestration Notes](1.2%5D%20CI-CD%20&amp;%20Workflow%20Orchestration%20NOTES.md)
+- [GIT Notes](1.3%5D%20GIT%20notes.md)
+  
+### 🖥️ Systems / Networking / Application Tech
+- [Linux + Bash Scripting Notes](4%5D%20Linux%20+%20Bash%20scripting%20notes.md)
+- [Super General Information](2%5D%20Super%20general%20information.md)
+- [Systems Design](3%5D%20Systems%20Design.md)
+  
+### 📦 Containerization
+- [Docker Notes](5%5D%20Docker%20notes.md) — [Flashcards]()
+- [Kubernetes + Helm Notes](6%5D%20Kubernetes%20+%20Helm%20notes.md) — [Flashcards]()
 
+### ⚙️ Infrastructure as Code / Tools
+- [Ansible vs Terraform](7%5D%20Ansible%20V%20terraform.md)
+- [Ansible Notes](8%5D%20Ansible%20Notes.md)
+- [Terraform Notes](9%5D%20Terraform%20notes.md)
 
+### ☁️ Cloud
+- [AWS Notes (Basic Cloud Architecture & DevOps)](10%5D%20AWS%20NOTES%20(basic%20cloud%20architecture%20&amp;%20DevOPs).md) — [Flashcards]()
 
+### 🐍 Programming
+- [Python Notes](11%5D%20Python%20notes.md)
 
-
-
--------
-
-ADD...
-
-linux --    [command] | tee somefile.txt    - streams output to console and file simultaneously 
-
-:- in docker (fallback vars)
-
-
-docker-compose logs -f [service]
-docker-compose config
-docker-compose ps [service list from compose file, quick summary vs docker ps -a ]
-docker-compose pull > just pulls images
-
-
-add lsblk - devices
-
-#sourceVbash : [linux - What is the difference between executing a Bash script vs sourcing it? - Super User](https://superuser.com/questions/176783/what-is-the-difference-between-executing-a-bash-script-vs-sourcing-it)
-add eval command (runs something as if it were a command typed in)
+## Other
+- [Other DSO Tools](12%5D%20Other%20DSO%20tools.md)
+- [General Dev Tools](13%5D%20General%20dev%20tools.md)
