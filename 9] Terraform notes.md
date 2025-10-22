@@ -42,7 +42,6 @@ You should see the installed Terraform version displayed. This confirms that Ter
 ---
 # **Core terraform terminology**
 
-
 1. **HCL:** stands for Hashicorp Configuration Language, the language Terraform uses for its projects.
    
 2. **TF:** abbreviation for Terraform
@@ -59,10 +58,13 @@ You should see the installed Terraform version displayed. This confirms that Ter
 
 8. **Remote backend storage:** Some form of this term is often used to describe a state file storage location that is not local, can be object storage server, cloud storage, HashiCorp TF cloud, etc.
 
+9.  **Terraform Cloud:** Terraform Cloud is often used as a control plane and state backend in enterprise environments. It is a SaaS platform provided by HashiCorp (now IBM) that integrates tightly with Terraform CLI, Git repositories, and CI/CD pipelines to enable automated, collaborative infrastructure management. Terraform Cloud manages **remote state**, versioning, and locking, preventing concurrent changes that could lead to state corruption. It also provides **workspaces**, which map a set of Terraform configuration files to an isolated state and variable set, enabling multiple environments (dev, staging, prod) to coexist using the same code. Additional features include **policy enforcement** via Sentinel, integrated **VCS triggers** for automated plan/apply runs on pull requests, and **variable management** for sensitive credentials or environment-specific settings. In enterprise workflows, Terraform Cloud acts as the central authority for state and execution, supporting both manual and automated Terraform runs while maintaining auditability and governance. [source of truth](https://medium.com/@devopsdiariesinfo/terraform-cloud-and-workspaces-a22a07e55446)
+
+
 
 ---
-# Terraform project core components
 
+# Terraform project core components
 Terraform can be a tad bit confusing without understanding the core project components in depth, so we will cover that here, from highest level to lowest level.
 
 ### (1) Providers
@@ -158,6 +160,7 @@ Resources are declarative—Terraform ensures that the actual infrastructure mat
 
 ---
 
+
 # Terraform project patterns in enterprise environments
 
 Terraform is implemented with a GitOps-style approach in nearly all enterprise environments. Using Terraform without version control is nearly impossible due to the way most CI/CD pipelines or Terraform Cloud (commonly used to orchestrate and control Terraform-managed infrastructure) ingest and execute Terraform code, especially in response to repository changes. Enterprise Terraform design revolves around separation of environments, control of state, and strict change governance. Below we’ll break down common Terraform hierarchy patterns used in production environments.
@@ -201,8 +204,14 @@ terraform apply -var-file=./environments/dev/apollo_terraform.tfvars
 ```
 
 
-### Pattern 1b - only tfvars per environment
-A simpler variant of pattern 1 where the root module has a single main.tf, variables.tf, outputs.tf, and modules are shared, while each environment only maintains its own tfvars file (no separate main.tf per environment). 
+### Pattern 2 - workspace-per-environment
+A simpler variant of pattern 1 where the root module has a single main.tf, variables.tf, outputs.tf, and modules are shared, while each environment only maintains its own tfvars file (no separate main.tf per environment). State and variable sets are isolated via workspaces (dev, staging, prod) and the environment specific vars file. 
+NOTE about workspaces, Each workspace maintains its **own separate state file**, even if you are using the **same set of Terraform configuration files**. This is a built-in mechanism to isolate environments (or multiple deployments) without duplicating code.
+- Both **local workspaces** and **Terraform Cloud workspaces** allow you to use the **same Terraform configuration files** to manage **multiple isolated state files**.
+
+- Each workspace maintains its own state so that changes applied in one workspace do not affect others.
+You can switch between workspaces with `terraform workspace select <name>` locally or in Terraform Cloud, and Terraform will operate against the corresponding state.
+
 Example structure:
 ```
 /terraform
@@ -221,26 +230,8 @@ Example structure:
 ```
 **Terraform Cloud / CI/CD / invocation snippet:**
 ```bash
-terraform workspace select dev
-terraform init
-terraform plan -var-file=./envs/dev.tfvars
-terraform apply -var-file=./envs/dev.tfvars
-```
-
-### Pattern 2 - workspace-per-environment
-
-Single codebase with environment separation handled by Terraform workspaces. State and variable sets are tied to workspaces (dev, staging, prod). 
-Example structure:
-```
-/terraform
-   |- main.tf
-   |- variables.tf
-   |- terraform.tfvars
-   |- modules/
-```
-**Terraform Cloud / CI/CD / invocation snippet:**
-```bash
 terraform workspace select staging
+terraform init
 terraform plan -var-file=./envs/staging.tfvars
 terraform apply -var-file=./envs/staging.tfvars
 ```
@@ -292,12 +283,14 @@ terraform apply -var-file=../../envs/dev.tfvars
 | **Repo-per-environment**                     | Each environment in a separate repository                                                                           | Each repo linked to its own workspace in Terraform Cloud; independent pipelines    | Maximum isolation, independent approvals, ideal for regulated environments     | High maintenance overhead, requires strict module version management |
 | **Component-based (monorepo with stacks)**   | Infrastructure split into components (networking, security, compute, observability) with per-component environments | Component stacks applied in order; use outputs / remote state to link dependencies | Scales well, clear separation of responsibility, parallel development possible | Complex orchestration, careful dependency management required        |
 
+
 ---
 ---
 > IMPORTANT 1 - Terraform projects — when we say _project_, think of an environment folder from Hierarchy 1 above — always contain a `main.tf`.  
 > Modules, however, may either have their components split into multiple files (for example `vpc.tf`, `ecs.tf`, `iam.tf`) or combined into a single `main.tf` that defines everything — but not both.
 ---
 ---
+
 # Terraform File Types
 > 	See the second to last section on this notes page for some common file snippet examples.
 
@@ -444,7 +437,7 @@ terraform untaint aws_instance.my_instance
 ```
 
 15. **terraform workspace**  
-    Manages multiple workspaces — isolated state files within the same configuration (for example dev, stage, prod).
+    Manages multiple workspaces — isolated state files within the same configuration (for example dev, stage, prod). Each workspace maintains its **own separate state file**, even if you are using the **same set of Terraform configuration files**. This is a built-in mechanism to isolate environments (or multiple deployments) without duplicating code.
 ```bash
 terraform workspace new dev
 terraform workspace select dev
