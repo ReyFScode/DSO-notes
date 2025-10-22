@@ -7,8 +7,7 @@ Systems design engineering is the process of defining the **architecture, compon
 # APIs
 
 ### Why Do We Need APIs?
-APIs help developers build software more easily. Instead of writing complex code from scratch, they can call APIs that provide the functionality they need. For example, a developer can fetch weather data via an API instead of building a full weather system. APIs are also crucial in modern websites where **heavy data transfers occur between client and server**.
-
+APIs help developers build decoupled software more easily. Instead of writing complex code from scratch, they can call APIs that provide the functionality they need. For example, a developer can fetch weather data via an API instead of building a full weather system. APIs are also crucial in modern websites where **heavy data transfers occur between client and server**.
 ### How Do APIs Work?
 - **Request:** A client (user) sends a request to the API’s URI.
 - **Processing:** The API forwards the request to the server.
@@ -18,7 +17,6 @@ APIs help developers build software more easily. Instead of writing complex code
 Think of this as the API being a router: it directs incoming requests to the appropriate internal function or external system and delivers the response back to the client.
 
 ### Types of API Architectures
-
 1. **REST (Representational State Transfer):**
     - Uses HTTP methods (GET, POST, PUT, DELETE) for communication.
     - Flexible and widely used in modern web apps.
@@ -32,10 +30,7 @@ APIs often require authentication and authorization to control access:
 - **OAuth:** Token-based authentication.
 - **Basic Auth:** Encodes username/password in the request header (less secure).
 
----
-
-# API Methods / Interacting with APIs (REST)
-
+## API Methods / Interacting with APIs (REST)
 REST is an architectural style for designing loosely coupled applications over the network. It provides **high-level design guidelines** without enforcing specific lower-level implementation rules.
 
 - **Data Format:** Most REST APIs use **JSON (JavaScript Object Notation)** as the standard, though XML, Protobuf, or MessagePack are alternatives.

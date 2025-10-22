@@ -5,9 +5,9 @@
 - **Web applications** operate on a **request-response cycle**, where a client (usually a browser) sends a request to a server, and the server responds with data (e.g., HTML, JSON, etc.).
 - This communication typically occurs over the **HTTP** protocol, which is based on a **client-server model** where the client (browser or app) makes requests and the server provides responses.
 
-2. **Network Socket Connection:**
-- To enable this communication, a **Connection** is established between the client and the server. This connection is made through a network socket (linux IPC, hard port like 80 on the server side and ephemeral on the client side) and acts as a "tunnel" through which the data (requests and responses) is transmitted.
-- Typically, the socket connection is based on **TCP** (Transmission Control Protocol) for reliable, ordered, and error-checked communication.
+	1. **Network Socket Connection:**
+	- To enable this communication, a **Connection** is established between the client and the server. This connection is made through a network socket (linux IPC, hard port like 80 on the server side and ephemeral on the client side) and acts as a "tunnel" through which the data (requests and responses) is transmitted.
+	- Typically, the socket connection is based on **TCP** (Transmission Control Protocol) for reliable, ordered, and error-checked communication.
 
 3. **HTTP/2 and Multiplexing:**
 - In **HTTP/2**, the protocol introduces **multiplexing**, allowing multiple streams of data (requests and responses) to be sent over a **single connection** (socket). This helps to overcome limitations in HTTP/1, such as the head-of-line blocking issue, and reduces the overhead of having to establish multiple connections for concurrent requests.

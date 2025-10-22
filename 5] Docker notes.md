@@ -437,6 +437,7 @@ docker build . -t [desired_image_name:desired_image_tag]
 # If you have a dockerfile that ISNT named Dockerfile e.g. something like dockerfile-test you would use the -f flag like this:
 docker build . -f [dockerfile-name] -t [desired_image_name:desired_image_tag]
 ```
+> You can build with multiple tags! just use as many `-t name:tags` as you want!
 
 **Quick clarification on `CMD` vs `ENTRYPOINT`:**
 This can be confusing so here's a really simplified answer to help you, `ENTRYPOINT` is used to define the primary executable of the container, with every component of the command spaced and in quotes ,e.g. *"command", "Command2"* with `CMD` is used to provide default arguments or additional commands to the entrypoint. If you need to run a command that doesn't change at instantiation entrypoint is going to be what you need to use, you don't have to use CMD unless you want flags that are overridable at run. (try this out!):
