@@ -454,136 +454,337 @@ Useful for lightweight environment separation when not using fully distinct back
 
 ---
 
-# **Terraform variables
+# **Terraform variables and data ingestion**
 
-Terraform provides a handful of ways to handle variables so that playbooks can utilize them.
-*source of truth:* [Terraform Variables: A Comprehensive Guide to Dynamic Infrastructure Configuration (terrateam.io)](https://terrateam.io/blog/terraform-variables/)
+### Variable and data types
+In Terraform, there are three primary ways to define or ingest data into your configurations: variables, locals, and data sources. Each serves a distinct purpose in managing input, derived, or external information.
 
-### **1. Common Variable Types**
+1. **Data Sources** — Data sources let Terraform query and reference existing infrastructure or external data. They don’t create resources but allow you to _read_ and use information from outside the current configuration. **Data sources can return either a single value or a list/map of values**, depending entirely on the specific provider and data source schema. For example, you can look up an existing network switch or fetch the latest container image from a registry:
+```hcl
+data "aws_ec2_host" "test" {
+  filter {
+    name   = "instance-type"
+    values = ["c5.18xlarge"]
+  }
+}
+```
+Data sources are often used to make your configuration dynamic and environment-aware, avoiding hardcoding of values that already exist in your infrastructure. Data sources return a structured object — essentially a map of key/value attributes — the attributes per data source differ, so we have to look in the provider specific documentation [example](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ec2_host); these attributes are the collected information we can parse out.
 
-##### **1.0** **Data sources**
-...
-##### **1.1 Locals**
-**Purpose:** Store immutable values within a Terraform configuration.  SHOULD & CAN only be put in the main.tf
-**Definition:**
 
+2. **Locals** — Locals are used to define customized values or to simplify repetitive expressions. They act like temporary variables within your Terraform configuration, computed at runtime. For instance, you might combine data from a data source with static text:
+    ```hcl
+    locals {
+      sample_local = "${data.hyperv_network_switch.default.name}-suffix"
+    }
+    ```
+    Locals help keep code DRY (Don’t Repeat Yourself) and improve readability, especially when working with complex expressions or repeated values across modules.
+
+
+3. **Input Variables** — Input variables define configurable parameters for your Terraform project. They are typically declared in a separate file (commonly `variables.tf`) and can be set via `.tfvars` files, environment variables, or CLI flags. Variables make your code flexible and environment-agnostic. Example:
+    ```hcl
+    variable "region" {
+      type    = string
+      default = "us-east-1"
+      description = "AWS region where resources will be deployed"
+    }
+    ```
+    Variables are best used to customize deployments across environments (for example, `dev`, `stage`, `prod`) without modifying your core Terraform logic.
+    
+    
+### Calling variable and data types
+There are a few key points to understand when referencing variables and data in Terraform:
+
+1.**Variables** are referenced with the `var.` prefix — for example, `var.region` or `var.instance_type`.
+
+UNLESS
+
+2. We are modifying the value, best practices then indicate we use double quotes and nest the variable in `${}` e.g. `"${var.variableName}.specialValue-${var.region}`
+
+3. **Data sources** are always referenced using the format `data.<provider_type>.<name>.<attribute>`.  
+    Example:
+    ```hcl
+    data "aws_ec2_host" "test" {
+      host_id = "i-abc123"
+    }
+    
+    output "ec2_sockets" {
+      value = data.aws_ec2_host.test.sockets
+    }
+    ```
+    Here, Terraform queries the specified EC2 host and exposes attributes (like `sockets`, `availability_zone`, `host_recovery`, etc.) that can be referenced anywhere else in your configuration. In the above example we output that value.
+    
+
+---
+
+
+# **Terraform Logic / Conditionals / Operators**
+
+Terraform includes built-in logic expressions, conditionals, and operators that make configurations dynamic and reusable across environments. They allow you to control resource creation, parameter values, and behavior based on input variables, environment types, or external data without duplicating code.
+
+### **1. Conditional Expressions (Ternary Operator)**
+Terraform supports a ternary-style conditional operator of the form `condition ? true_value : false_value`. It returns `true_value` if the condition is true, otherwise `false_value`. The ternary operator can be used in many places: with `count` to conditionally create resources, to dynamically assign argument values, or to set locals based on conditions.
+
+Example with resource arguments:
+```hcl
+variable "environment" { type = string }
+resource "aws_instance" "example" {
+  instance_type = var.environment == "prod" ? "t3.large" : "t3.micro"
+  monitoring    = var.environment != "dev" ? true : false
+}
+```
+Example in locals for dynamic values:
 ```hcl
 locals {
-  some_key      = "some_value"
-  some_otherkey = "some_other_value"
+  subnet_cidr   = var.env == "prod" ? "10.0.0.0/16" : "10.1.0.0/16"
+  enable_backup = var.env == "stage" ? false : true
 }
-
-Called with: "${local.some_key}"
 ```
-
-**Characteristics:** Immutable (cannot change during execution), accessed with `${local.some_key}`, useful for repeated constants or computed values.
-
-#####  **1.2 Variable Blocks**
-**Purpose:** Create mutable variables that can be customized at runtime or overridden.  
-**Definition:**
-
+Example with `count` for conditional resource creation:
 ```hcl
-variable "example_var" {
-  description = "An example variable"
-  type        = string
-  default     = "some_value"
+resource "aws_s3_bucket" "logs" {
+  count  = var.enable_logging ? 1 : 0
+  bucket = "app-logs-${var.env}"
 }
-
-Called with: "${var.example_var}"
 ```
-
-Variable blocks can be declared in `main.tf` or a dedicated `variables.tf` file. Example:
-Running `terraform plan` will display the variable output for debugging.
-> If a default value is set, Terraform will not prompt for input. Prompting occurs only when no default is provided.
-#### **2.2 Overriding Variables**
-**1. CLI Flag (`--var` / `-var`):** Highest precedence for setting variables. Overrides any default or `.tfvars` values.
-
-```bash
-terraform apply --var "test_var=new_value"
-```
-
-### **3. Variable Files**
-#### **3.1 `variables.tf`**
-Purpose: Declare variables for use in the main configuration via a separate file. Keeps `main.tf` clean and organized. Example:
-
+Example inside a map:
 ```hcl
-variable "instance_type" {
-  type        = string
-  default     = "t2.micro"
-  description = "Type of EC2 instance"
-}
-
-variable "region" {
-  type        = string
-  description = "AWS region"
+locals {
+  tags = {
+    Environment = var.env
+    Owner       = var.env == "prod" ? "team-prod" : "team-dev"
+  }
 }
 ```
 
-#### **3.2 `.tfvars` Files**
-> can be named `terraform.tfvars` for standard local project variable values OR can be called `*.auto.tfvars` in a production environment (common for gitops repos where we hold and version the configs for multiple environments), e.g *prod.auto.tfvars* or *dev.auto.tfvars*, or something akin to that.
+### **2. Boolean Logic Operators**
+Terraform provides standard logical operators: `&&` for AND, `||` for OR, and `!` for NOT. They can be combined with variables, comparisons, or ternary expressions to control arguments or conditional resource creation.
 
-Purpose: Assign values to variables at runtime. NOTE: variables to provide must exist in variables.tf file for the project ????true??? 
-
-File Example:
+Example with AND:
 ```hcl
-instance_type = "t3.medium"
-region        = "us-east-1"
+resource "aws_instance" "example" {
+  count = var.env == "prod" && var.enable_monitoring ? 1 : 0
+}
+```
+Example with OR:
+```hcl
+locals {
+  enable_feature = var.env == "dev" || var.env == "stage"
+}
+```
+Example with NOT:
+```hcl
+locals {
+  skip_vpc_creation = !var.create_vpc
+}
 ```
 
-Apply using:
-```bash
-terraform apply --var-file=prod.tfvars
+### **3. Comparison Operators**
+
+Terraform supports basic comparison operators: `==`, `!=`, `>`, `<`, `>=`, `<=`. These are often combined with ternary or boolean logic to evaluate conditions dynamically.
+
+Examples:
+```hcl
+locals {
+  use_large_instance = var.instance_count > 3
+  is_primary_region  = var.region == "us-east-1"
+  needs_backup       = length(var.subnets) >= 3
+  skip_cache         = var.enable_cache != true
+}
 ```
 
-#### 4. Summary
-**Locals** → Immutable constants or computed values.  
-**Variable blocks** → Mutable, overridable inputs for configurations.  
-**`variables.tf`** → Variable declarations.  
-**`.tfvars`** → Variable value assignments at runtime.  
-Defaults prevent prompts; no default triggers input requests.  
-`--var` overrides everything else.
+### **4. Conditional and Iterative Resource Creation**
+`count` and `for_each` provide flexible ways to create resources based on conditions or iterate over multiple items.
 
-### 5. use cases for variables in a DSO context...
-#flesh_out
+**`count` Meta-Argument:** `count` determines how many instances Terraform creates. Using a ternary operator, `count` can conditionally enable or disable a resource:
+```hcl
+resource "aws_iam_role" "lambda_exec" {
+  count = var.converged_env ? 1 : 0
+  name  = "lambda-role-${var.env}"
+}
+```
+`count = 0` skips the resource, `count = 1` or higher creates it.
 
+**`for_each` Meta-Argument:** `for_each` iterates over sets or maps to create uniquely identified instances. Unlike `count`, it uses keys for direct referencing:
+```hcl
+variable "app_names" { type = list(string) default = ["api","frontend","worker"] }
+resource "aws_s3_bucket" "buckets" {
+  for_each = toset(var.app_names)
+  bucket   = "myapp-${each.key}"
+}
+```
+Example using a map for more complex attributes:
+```hcl
+variable "env_configs" {
+  type = map(object({ cidr : string }))
+  default = {
+    dev  = { cidr = "10.0.1.0/24" }
+    prod = { cidr = "10.0.2.0/24" }
+  }
+}
+resource "aws_subnet" "example" {
+  for_each = var.env_configs
+  vpc_id   = aws_vpc.main.id
+  cidr_block = each.value.cidr
+}
+```
+
+### **5. Built-in Functions for Logic**
+Terraform functions can evaluate or manipulate data dynamically. Examples:
+```hcl
+locals {
+  region = coalesce(var.region, "us-east-1")
+  is_enabled = contains(var.enabled_envs, var.env)
+  subnet_count = length(var.subnets)
+  owner = lookup(var.tags, "Owner", "default-owner")
+  vpc_id = try(data.aws_vpc.main.id, null)
+}
+```
+
+### **6. Locals for Consolidating Logic**
+Locals define temporary, computed values to simplify expressions and reduce repetition. Example:
+```hcl
+locals {
+  instance_type = var.env == "prod" ? "t3.large" : "t3.micro"
+  enable_backup = contains(["prod","stage"], var.env)
+  ami_id = var.env == "prod" ? data.aws_ami.prod.id : data.aws_ami.dev.id
+}
+```
+Reference them with `local.instance_type`, `local.enable_backup`, or `local.ami_id`.
+
+### **7. Dynamic Blocks and For Expressions**
+Dynamic blocks programmatically generate nested blocks:
+```hcl
+resource "aws_security_group" "example" {
+  name = "dynamic-example"
+  dynamic "ingress" {
+    for_each = var.ingress_rules
+    content {
+      from_port   = ingress.value.from
+      to_port     = ingress.value.to
+      protocol    = ingress.value.protocol
+      cidr_blocks = ingress.value.cidr_blocks
+    }
+  }
+}
+```
+For expressions filter or transform lists/maps:
+```hcl
+locals {
+  prod_subnets = [for s in var.subnets : s if s.env == "prod"]
+  names_map    = { for n in var.names : n => upper(n) if n != "" }
+}
+```
+
+### **8. Summary Table**
+
+|Feature|Purpose|Example|
+|---|---|---|
+|Ternary Operator|Inline branching logic|`var.env == "prod" ? "t3.large" : "t3.micro"`|
+|Boolean Operators|AND/OR/NOT conditions|`var.enabled && var.region == "us-east-1"`|
+|Comparison Operators|Evaluate values|`length(var.subnets) > 2`|
+|`count`|Conditional resource creation|`count = var.enable ? 1 : 0`|
+|`for_each`|Iterate resources|`for_each = toset(var.items)` or `for_each = var.map`|
+|Functions|Dynamic evaluation|`lookup(var.map, "key", "default")`|
+|Locals|Compute reusable values|`local.instance_type`|
+|Dynamic Blocks|Programmatically generate nested blocks|`dynamic "ingress" { for_each = ... }`|
+|For Expressions|Build filtered lists/maps|`[for x in var.list : x if x != ""]`|
 
 
 
 ---
-
-
-# **Terraform cloud
-
-
+---
+> The above section is quite complex, for some quick and easy tips and tricks to implement in your playbooks check out the below section
+---
 ---
 
 
-# **Sample Terraform Configuration**
-Here's a basic example of a Terraform main.tf configuration file that provisions an set number of ec2 instances via a module, and uses a resource to create a security group for ssh access and upload the key pair for it. Variable are provided in variables.tf
+# **Essential tips and tricks**
 
-```HCL
+ 1. **Use `count` with a ternary operator and a variable to control resource creation**
+ When working with reusable Terraform modules—especially under patterns like **repo-per-service-main-per-environment**—it’s common to introduce new resources or components that not all environments should create. For example, if you have a **converged environment** (two loosely isolated environments sharing some global resources such as IAM roles, S3 buckets, or networking), you don’t want Terraform to attempt creating duplicate global resources.  
+In these cases, you can control whether a resource is created using the `count` meta-argument combined with a conditional (ternary) expression based on a flag variable. Example:
+```hcl
+# variables.tf
+variable "converged_env" {
+  type    = bool
+  default = false
+}
 
-# main.tf
+# env.auto.tfvars
+converged_env = true
 
+# main.tf (or inside a module)
+resource "aws_iam_role" "lambda_exec" {
+  count = var.converged_env ? 0 : 1
+  name  = "lambda-exec-role"
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume.json
+}
+```
+In this example, when `converged_env` is set to **true**, the IAM role will **not be created** (`count = 0`), since it already exists in a shared context. When `converged_env` is **false**, Terraform creates one instance (`count = 1`).  
+You can invert the logic depending on your use case—for instance, `count = var.converged_env ? 1 : 0` if you only want the role in converged environments. The key takeaway is that `count` allows conditional resource instantiation without duplicating code or maintaining separate configuration files for each environment.
+
+
+2. **Use `title()` to format strings**  
+`title()` is a built-in Terraform function that converts the first letter of **each word** in a string to uppercase and the remaining letters to lowercase. It’s useful for enforcing consistent naming across environments. For example, if you have environment names like `Prod` or `Staging`, `title(var.environment_name)` ensures that user input such as `PROD` or `staging` is normalized to `Prod` and `Staging`, which helps maintain consistent tagging, naming conventions, and comparisons.
+```hcl
 provider "aws" {
-  region = "us-east-1"
+  region = var.aws_region
+  default_tags {
+	  tags = {
+	    Environment = title(var.environment_name)
+	    Service     = "OrigamiJWKS"
+	}
+  }
 }
+```
 
-resource "aws_key_pair" "imported_key" {
-  key_name   = "my-imported-key"
-  public_key = "public key file contents, one line, RSA encryption"
-}
 
+---
+#FLESH_OUT 
+# **Mock Terraform Project**
+```
+terraform-project/
+├── environments/
+│   ├── dev/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   ├── dev.auto.tfvars
+│   │   └── outputs.tf
+│   └── prod/
+│       ├── main.tf
+│       ├── variables.tf
+│       ├── prod.auto.tfvars
+│       └── outputs.tf
+├── modules/
+│   ├── ec2/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   └── security_group/
+│       ├── main.tf
+│       ├── variables.tf
+│       └── outputs.tf
+├── providers.tf
+├── backend.tf
+├── versions.tf
+└── README.md
+
+# Provider, backend, and versions files live at the repo root because they enforce consistency across all environments and modules. Providers define how Terraform talks to the target platform, backends control where state is stored, and versions pin Terraform and provider versions. Modules shouldn’t include these—they’re reusable, provider-agnostic, and inherit settings from the root configuration.
+```
+
+# **Module Implementations**
+**modules/security_group/main.tf**
+```hcl
 resource "aws_security_group" "ssh_access" {
-  name        = "allow-ssh-from-my-ip"
-  description = "Allow SSH inbound traffic from my IP only"
-  vpc_id      = "${var.vpc_to_target}"
+  name        = var.sg_name
+  description = var.sg_description
+  vpc_id      = var.vpc_id
 
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["${var.my_public_ip}/32"]
+    cidr_blocks = [var.allowed_ip]
   }
 
   egress {
@@ -592,80 +793,146 @@ resource "aws_security_group" "ssh_access" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = var.tags
+}
+```
+**modules/security_group/variables.tf**
+```hcl
+variable "sg_name" { type = string }
+variable "sg_description" { type = string }
+variable "vpc_id" { type = string }
+variable "allowed_ip" { type = string }
+variable "tags" { type = map(string) default = {} }
+```
+**modules/security_group/outputs.tf**
+```hcl
+output "sg_id" {
+  value = aws_security_group.ssh_access.id
+}
+```
+
+**modules/ec2/main.tf**
+```hcl
+resource "aws_instance" "ec2" {
+  count                  = var.instance_count
+  ami                    = var.ami
+  instance_type          = var.instance_type
+  subnet_id              = var.subnet_id
+  key_name               = var.key_name
+  vpc_security_group_ids = var.sg_ids
+
+  tags = merge(var.tags, { Name = format("%s-%d", var.name_prefix, count.index + 1) })
+}
+```
+**modules/ec2/variables.tf**
+```hcl
+variable "instance_count" { type = number }
+variable "ami" { type = string }
+variable "instance_type" { type = string }
+variable "subnet_id" { type = string }
+variable "key_name" { type = string }
+variable "sg_ids" { type = list(string) }
+variable "tags" { type = map(string) default = {} }
+variable "name_prefix" { type = string }
+```
+**modules/ec2/outputs.tf**
+```hcl
+output "public_ips" {
+  value = [for i in aws_instance.ec2 : i.public_ip]
+}
+```
+
+# **Environment Example**
+**environments/dev/main.tf**
+```hcl
+provider "aws" { region = "us-east-1" }
+
+module "ssh_sg" {
+  source        = "../../modules/security_group"
+  sg_name       = "dev-ssh-sg"
+  sg_description = "Dev SSH access"
+  vpc_id        = var.vpc_id
+  allowed_ip    = var.my_public_ip
+  tags          = { Environment = title(var.environment_name) }
 }
 
-resource "aws_instance" "my_ec2" {
-  count                  = "${var.instance_count}"
-  ami                    = "ami-084a7d336e816906b" # Replace if needed
-  instance_type          = "t2.micro"
-  subnet_id              = "${var.subnet_id}"
-  key_name               = aws_key_pair.imported_key.key_name
-  vpc_security_group_ids = [aws_security_group.ssh_access.id]
+module "ec2_instances" {
+  source        = "../../modules/ec2"
+  instance_count = var.instance_count
+  ami           = var.ami
+  instance_type = var.instance_type
+  subnet_id     = var.subnet_id
+  key_name      = var.key_name
+  sg_ids        = [module.ssh_sg.sg_id]
+  tags          = { Environment = title(var.environment_name) }
+  name_prefix   = "dev-app"
+}
 
-  tags = {
-    Name = format("TEST-instance-%d", count.index + 1)
+output "ec2_public_ips" {
+  value = module.ec2_instances.public_ips
+}
+```
+**environments/dev/variables.tf**
+```hcl
+variable "environment_name" { type = string default = "dev" }
+variable "instance_count" { type = number default = 2 }
+variable "ami" { type = string default = "ami-084a7d336e816906b" }
+variable "instance_type" { type = string default = "t2.micro" }
+variable "subnet_id" { type = string default = "subnet-123456" }
+variable "vpc_id" { type = string default = "vpc-123456" }
+variable "key_name" { type = string default = "my-key" }
+variable "my_public_ip" { type = string default = "10.0.0.1/32" }
+```
+**environments/dev/dev.auto.tfvars**
+```hcl
+environment_name = "dev"
+instance_count   = 3
+```
+
+# **Providers / Backend / Versions**
+
+**providers.tf**
+```hcl
+provider "aws" { region = "us-east-1" }
+```
+**backend.tf**
+```hcl
+terraform {
+  backend "s3" {
+    bucket = "my-tf-state"
+    key    = "dev/terraform.tfstate"
+    region = "us-east-1"
   }
 }
-
-output "instance_public_ips" {
-  value = [for i in aws_instance.my_ec2 : i.public_ip]
-}
-
-#--------------------------------------------------------------------
-
-# variables.tf
-
-
-variable "instance_count" {
-  description = "Number of EC2 instances"
-  type        = number
-  default     = 3
-}
-
-variable "my_public_ip" {
-  description = "public IP for ssh rule"
-  type        = string
-  default     = "10.1.20.45"
-}
-
-variable "vpc_to_target" {
-  description = "VPC ID"
-  type        = string
-  default     = "VPC ID here"
-}
-
-variable "subnet_id" {
-  description = "Subnet ID to launch instances into"
-  type        = string
-  default     = "SUBNET ID TO LAUNCH INSTANCES INTO"
-}
-
+```
+**versions.tf**
+```hcl
+terraform {
+  required_version = ">= 1.5.0"
+  required_providers {
+    aws = { source = "hashicorp/aws" version = "~> 5.0" }
+  }
 }
 ```
-In this example:
-- **aws_key_pair.imported_key** → Registers your **local public key** in AWS so EC2 instances can use it for SSH access.
 
-- **aws_security_group.ssh_access** → Creates a security group that:
-    - Allows SSH (`tcp` port 22) only from your given IP (`var.my_public_ip`)
-    - Allows all outbound traffic
 
-- **aws_instance.my_ec2** → Launches `var.instance_count` EC2 instances with:
-    - The registered SSH key
-    - The above security group
-    - The chosen subnet
-
-- **Output** → Prints the public IPs of all created instances.
-
-to apply we run:
-```
-terraform init > intializes tf project
-
-terraform plan -out generated.tfplan -no-color | tee /readable.tfplan
-^ saves our plan to a generated file we can apply from, and the output to a readable plan we can reference
-
+# **Usage**
+```bash
+terraform init
+terraform plan -out generated.tfplan
 terraform apply ./generated.tfplan
 ```
 
+This example shows how modules, `count`, outputs, variables, and providers work together in a small but realistic Terraform project. It is fully reusable for `prod` or other environments by creating another folder under `environments/` and modifying variables.
+
+
+
+---
+---
+# Other information
+
+---
 ---
 
 # **Using Terraform in offline environments**
@@ -690,8 +957,6 @@ Replace  `"path/to/local/provider/binary"`  with the actual path to the provider
 4. Initialize Terraform: Run the  `terraform init`  command in your project directory to initialize Terraform. Terraform will detect the locally configured provider and use it for subsequent operations.
 
 By following these steps, you can work with Terraform and its providers in an airgapped environment without relying on internet connectivity. Ensure that you have the correct provider binary version compatible with your Terraform configuration and that it is obtained from a trusted source.
-
-
 
 
 
@@ -760,3 +1025,32 @@ terraform plan
 - If using Terraform Cloud or an S3 backend with versioning, you may have **older snapshots** of your state file.
     
 - Restore from the snapshot instead of manual re-importing.
+
+
+
+
+
+
+
+
+
+
+---
+add 
+
+...- If you run `terraform init` and `terraform plan` in `environments/dev` **without `providers.tf` in dev**, Terraform uses the root provider (`us-east-1`).
+    
+- If `providers.tf` exists in `environments/dev`, Terraform **merges or overrides** the provider, so the module runs in `us-west-2`.
+    
+- Modules themselves never declare backends or providers—they inherit from whatever calls them.
+    
+
+This lets you centralize most config in the root while still supporting environment-specific provider tweaks.
+**well-defined way of resolving provider and backend configurations**. When you run `terraform init` or other commands in a subdirectory (like `environments/dev`), Terraform looks **up the directory tree** for a `terraform` block with `required_providers` and backend configuration. That’s why keeping `versions.tf` and `backend.tf` at the repo root works—they’re automatically inherited by subfolders.
+
+- **modules/** should generally **not** include providers or backends—they inherit them from whatever calls the module.
+    
+- **environments/** can have their own `providers.tf` if the environment needs provider overrides (like region or credentials), but it’s optional. If present, Terraform merges it with the root provider configuration.
+    
+
+So, if you have a provider at the root and no `providers.tf` in `environments/dev`, Terraform just uses the root one. If you put a `providers.tf` in the environment folder, it can override or supplement the root provider. It’s a flexible system, which is why you see both patterns in the wild.
