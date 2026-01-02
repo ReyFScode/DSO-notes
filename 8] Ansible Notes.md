@@ -453,9 +453,102 @@ tasks:
 ```
 
 
+## Ansible blocks
 
-**Blocks**
-...
+An **Ansible block** is a way to **group multiple tasks together** so you can apply common behavior to all of them at once.  
+Blocks are most commonly used for:
+
+- Error handling (`rescue`, `always`)
+- Applying conditions (`when`) to multiple tasks
+- Applying privilege escalation (`become`) once instead of per task
+- Improving readability and structure
+
+A block does **not** change execution order by itself — tasks still run top-to-bottom. Think of `block` as a container for tasks.
+## Basic syntax
+
+```yaml
+- block:
+    - name: Task 1
+      ansible.builtin.command: echo "hello"
+
+    - name: Task 2
+      ansible.builtin.command: echo "world"
+```
+
+#### Error handling with `block`, `rescue`, and `always`
+This is the most important and common use case.
+
+**How it works**
+
+|Programming concept|Ansible construct|
+|---|---|
+|`try`|`block`|
+|`catch`|`rescue`|
+|`finally`|`always`|
+```
+- block:
+    # "try" section
+    - name: Task that might fail
+      ansible.builtin.command: /usr/bin/do-something-risky
+
+  rescue:
+    # "catch" section
+    - name: Handle the failure
+      ansible.builtin.debug:
+        msg: "The risky task failed"
+
+  always:
+    # "finally" section
+    - name: Always run cleanup
+      ansible.builtin.debug:
+        msg: "Cleanup complete"
+
+```
+
+### Execution rules (precise)
+
+- Tasks in **`block`** run first
+- A `block` is considered failed if **any task** inside it returns a failure result (`failed: true`). If **any task in `block` fails**:
+    - Remaining block tasks are skipped
+    - `rescue` tasks execute
+- `always` executes **regardless of success or failure**
+- Execution then continues with the next task in the play
+
+
+#### Using `when` with blocks
+Instead of repeating `when` on every task:
+
+```yaml
+- block:
+    - name: Task A
+      ansible.builtin.command: echo "A"
+
+    - name: Task B
+      ansible.builtin.command: echo "B"
+  when: ansible_os_family == "RedHat"
+```
+
+All tasks in the block inherit the condition.
+
+#### Using `become` with blocks
+Apply privilege escalation once:
+
+```yaml
+- block:
+    - name: Update packages
+      ansible.builtin.yum:
+        name: "*"
+        state: latest
+
+    - name: Install httpd
+      ansible.builtin.yum:
+        name: httpd
+        state: present
+  become: true
+```
+
+This is cleaner and less error-prone than repeating `become: true`.
+
 
 
 ---

@@ -99,6 +99,7 @@ These three tools allow for powerful output transformations and are often pipeli
       - Example: `sed -i 's/old/new/g' file.txt` to replace all occurrences of 'old' with 'new' in a file. 
       - you can use `sed -i '2d' ./file.txt` to delete a line in a file (replace 2 with the line number you want to delete, starts at 1 not 0). 
       - For ALL use cases If you don't specify `-i` (short for insert) the changes wont be written to the file, not specifying `-i` first is a good way to test your replacement to ensure its performing the desired behavior before actually writing changes.
+      - you can use ALTERNATIVE delimiters, e.g. `sed s/something/else/other/g` would fail due to a slash in the string to replace, but `sed 's|something/else|other|g` will succeed
       - NOTE - see section below for comparison between `tr` & `sed`
       
 3) **`grep` (search):** **Used to search for text in output/files, output can be tailored with flags.**
